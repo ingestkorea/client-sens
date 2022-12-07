@@ -1,0 +1,7 @@
+.gitignore
+.dockerignore
+package-lock.json
+tsconfig*.json
+node_modules/
+src/
+dist-*/test-*/
