@@ -4,7 +4,7 @@
 [![NPM downloads](https://img.shields.io/npm/dm/@ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
 
 ## Description
-INGESTKOREA SDK NCP SENS Client for Node.js.
+INGESTKOREA SDK Naver Cloud Platform SENS Client for Node.js.
 
 ## Installing
 ```sh
@@ -26,6 +26,8 @@ npm install @ingestkorea/client-sens
 + GetRequestResult
 + ListChannels
 + SendSMS
++ ListTemplates
++ GetTemplate
 
 ### Import
 ```ts
