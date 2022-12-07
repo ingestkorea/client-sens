@@ -5,6 +5,7 @@ import {
   serializeIngestkorea_restJson_GetRequestStatusCommand,
   deserializeIngestkorea_restJson_GetRequestStatusCommand
 } from '../protocols/GetRequestStatus';
+import { IngestkoreaError } from '@ingestkorea/util-error-handler';
 
 export interface GetRequestStatusCommandInput extends GetRequestStatusInput { };
 export interface GetRequestStatusCommandOutput extends GetRequestStatusOutput { };
@@ -20,6 +21,9 @@ export class GetRequestStatusCommand extends SensCommand<
     };
   };
   async serialize(input: GetRequestStatusCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
+    if (!config.serviceId.kakao) throw new IngestkoreaError({
+      code: 400, type: 'Bad Request', message: 'Invalid Params', description: 'Please Check Kakao ServiceId'
+    });
     let request = await serializeIngestkorea_restJson_GetRequestStatusCommand(input, config);
     return request;
   };

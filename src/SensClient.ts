@@ -7,7 +7,11 @@ export type Credentials = {
   accessKey: string,
   secretKey: string,
 };
-export type ServiceId = string;
+export type ServiceId = {
+  push?: string
+  sms?: string
+  kakao?: string
+};
 
 export interface SensClientConfig {
   credentials?: Credentials,
@@ -27,7 +31,7 @@ export class SensClient {
     const resolvedServiceId = resolveServiceId(config)
     this.config = {
       credentials: { ...resolvedCredentials },
-      serviceId: resolvedServiceId
+      serviceId: { ...resolvedServiceId }
     };
     this.httpHandler = new NodeHttpHandler({ connectionTimeout: 3000, socketTimeout: 3000 });
   };
@@ -51,11 +55,15 @@ const resolveCredentials = (config: SensClientConfig): Required<Credentials> => 
   return credentials;
 };
 
-const resolveServiceId = (config: SensClientConfig): Required<ServiceId> => {
+const resolveServiceId = (config: SensClientConfig): ServiceId => {
   const { serviceId } = config;
   if (!serviceId) throw new IngestkoreaError({
     code: 401, type: 'Unauthorized',
     message: 'Invalid Credentials', description: 'Invalid ServiceId'
   });
-  return serviceId;
+  return {
+    push: serviceId.push != undefined ? serviceId.push : undefined,
+    sms: serviceId.sms != undefined ? serviceId.sms : undefined,
+    kakao: serviceId.kakao != undefined ? serviceId.kakao : undefined
+  };
 };

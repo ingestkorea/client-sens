@@ -1,7 +1,7 @@
 export interface SendAlimtalkInput {
   plusFriendId: string
   templateCode: string
-  messages: SendMessage[]
+  messages: AlimtalkMessage[]
 };
 export interface SendAlimtalkOutput {
   requestId?: string
@@ -11,7 +11,7 @@ export interface SendAlimtalkOutput {
   messages?: ReceivedMessage[]
 };
 
-export interface SendMessage {
+export interface AlimtalkMessage {
   to: string
   content: string
   buttons?: Buttons[]

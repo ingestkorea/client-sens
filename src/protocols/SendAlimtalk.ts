@@ -12,7 +12,7 @@ export const serializeIngestkorea_restJson_SendAlimtalkCommand = async (
   config: SensClientResolvedConfig
 ): Promise<HttpRequest> => {
   const hostname = "sens.apigw.ntruss.com";
-  const path = "/alimtalk/v2/services/" + config.serviceId + "/messages";
+  const path = "/alimtalk/v2/services/" + config.serviceId.kakao + "/messages";
   const headers = {
     "content-type": "application/json; charset=utf-8",
     "host": hostname

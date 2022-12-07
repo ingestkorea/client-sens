@@ -4,7 +4,8 @@ import { SensClientResolvedConfig } from '../SensClient';
 import {
   serializeIngestkorea_restJson_ListChannelsCommand,
   deserializeIngestkorea_restJson_ListChannelsCommand,
-} from '../protocols/ListChannels'
+} from '../protocols/ListChannels';
+import { IngestkoreaError } from '@ingestkorea/util-error-handler';
 
 export interface ListChannelsCommandInput extends ListChannelsInput { };
 export interface ListChannelsCommandOutput extends ListChannelsOutput { };
@@ -20,6 +21,9 @@ export class ListChannelsCommand extends SensCommand<
     };
   };
   async serialize(input: ListChannelsCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
+    if (!config.serviceId.kakao) throw new IngestkoreaError({
+      code: 400, type: 'Bad Request', message: 'Invalid Params', description: 'Please Check Kakao ServiceId'
+    });
     let request = await serializeIngestkorea_restJson_ListChannelsCommand(input, config);
     return request;
   };

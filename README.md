@@ -25,6 +25,7 @@ npm install @ingestkorea/client-sens
 + GetRequestStatus
 + GetRequestResult
 + ListChannels
++ SendSMS
 
 ### Import
 ```ts
@@ -47,7 +48,11 @@ const client = new SensClient({
     accessKey: ACCESS_KEY,
     secretKey: SECRET_KEY
   },
-  serviceId: 'ncp:kkobizmsg:kr:1234567:your-service-name'
+  serviceId: { // at least one serviceId required
+    sms: 'ncp:sms:kr:123456789xxx:your-service-name', // optional
+    kakao: 'ncp:kkobizmsg:kr:9876xxx:your-service-name' // optional
+    // if you call send operation without serviceId, sdk throw error
+  }
 });
 
 let params: SendAlimtalkCommandInput = {
