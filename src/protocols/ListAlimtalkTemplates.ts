@@ -1,14 +1,14 @@
 import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { ListTemplatesOutput, Template, Comment, Button } from '../models/ListTemplates';
+import { ListAlimtalkTemplatesOutput, Template, Comment, Button } from '../models/ListAlimtalkTemplates';
 import { SensClientResolvedConfig } from '../SensClient';
 import {
-  ListTemplatesCommandInput,
-  ListTemplatesCommandOutput
-} from '../commands/ListTemplatesCommand';
+  ListAlimtalkTemplatesCommandInput,
+  ListAlimtalkTemplatesCommandOutput
+} from '../commands/ListAlimtalkTemplatesCommand';
 import { parseBody, parseErrorBody } from './constants';
 
-export const serializeIngestkorea_restJson_ListTemplatesCommand = async (
-  input: ListTemplatesCommandInput,
+export const serializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async (
+  input: ListAlimtalkTemplatesCommandInput,
   config: SensClientResolvedConfig
 ): Promise<HttpRequest> => {
   const hostname = "sens.apigw.ntruss.com";
@@ -29,33 +29,33 @@ export const serializeIngestkorea_restJson_ListTemplatesCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_ListTemplatesCommand = async (
+export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async (
   output: HttpResponse
-): Promise<ListTemplatesCommandOutput> => {
+): Promise<ListAlimtalkTemplatesCommandOutput> => {
   if (output.statusCode > 300) await parseErrorBody(output);
 
-  const data: any = await parseBody(output); // ListTemplatesOutput
+  const data: any = await parseBody(output); // ListAlimtalkTemplatesOutput
   let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_ListTemplatesOutput(data);
+  contents = await deserializeIngestkorea_restJson_ListAlimtalkTemplatesOutput(data);
 
-  const response: ListTemplatesCommandOutput = {
+  const response: ListAlimtalkTemplatesCommandOutput = {
     ...contents
   };
   return response;
 };
 
-export const deserializeIngestkorea_restJson_ListTemplatesOutput = async (
+export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesOutput = async (
   output: any
-): Promise<ListTemplatesOutput> => {
+): Promise<ListAlimtalkTemplatesOutput> => {
   return {
-    templates: deserializeIngestkorea_restJson_Template(output)
+    templates: deserializeIngestkorea_restJson_AlimtalkTemplate(output)
   };
 };
 
-export const deserializeIngestkorea_restJson_Template = (
+export const deserializeIngestkorea_restJson_AlimtalkTemplate = (
   outputs: any[]
 ): Template[] => {
-  return outputs.map(output => {
+  let result = outputs.map(output => {
     return {
       createTime: output.createTime != undefined ? output.createTime : undefined,
       updateTime: output.updateTime != undefined ? output.updateTime : undefined,
@@ -64,20 +64,21 @@ export const deserializeIngestkorea_restJson_Template = (
       templateName: output.templateName != undefined ? output.templateName : undefined,
       content: output.content != undefined ? output.content : undefined,
       comments: output.comments != undefined
-        ? deserializeIngestkorea_restJson_Comment(output.comments) : undefined,
+        ? deserializeIngestkorea_restJson_AlimtalkTemplateComment(output.comments) : undefined,
       templateInspectionStatus: output.templateInspectionStatus != undefined
         ? output.templateInspectionStatus : undefined,
       templateStatus: output.templateStatus != undefined ? output.templateStatus : undefined,
       buttons: output.buttons != undefined
-        ? deserializeIngestkorea_restJson_Button(output.buttons) : undefined
+        ? deserializeIngestkorea_restJson_AlimtalkTemplateButton(output.buttons) : undefined
     };
   });
+  return result;
 };
 
-export const deserializeIngestkorea_restJson_Comment = (
+export const deserializeIngestkorea_restJson_AlimtalkTemplateComment = (
   outputs: any[]
 ): Comment[] => {
-  return outputs.map(output => {
+  let result = outputs.map(output => {
     return {
       commentId: output.commentId != undefined ? output.commentId : undefined,
       content: output.content != undefined ? output.content : undefined,
@@ -85,12 +86,13 @@ export const deserializeIngestkorea_restJson_Comment = (
       createTime: output.createTime != undefined ? output.createTime : undefined
     };
   });
+  return result;
 };
 
-export const deserializeIngestkorea_restJson_Button = (
+export const deserializeIngestkorea_restJson_AlimtalkTemplateButton = (
   outputs: any[]
 ): Button[] => {
-  return outputs.map(output => {
+  let result = outputs.map(output => {
     return {
       order: output.order != undefined ? output.order : undefined,
       type: output.type != undefined ? output.type : undefined,
@@ -101,4 +103,5 @@ export const deserializeIngestkorea_restJson_Button = (
       schemeAndroid: output.schemeAndroid != undefined ? output.schemeAndroid : undefined
     };
   });
+  return result;
 };

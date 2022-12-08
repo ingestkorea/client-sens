@@ -1,14 +1,14 @@
 import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { GetRequestStatusOutput, StatusMessage } from '../models/GetRequestStatus';
+import { GetAlimtalkStatusOutput, StatusMessage } from '../models/GetAlimtalkStatus';
 import { SensClientResolvedConfig } from '../SensClient';
 import {
-  GetRequestStatusCommandInput,
-  GetRequestStatusCommandOutput
-} from '../commands/GetRequestStatusCommand';
+  GetAlimtalkStatusCommandInput,
+  GetAlimtalkStatusCommandOutput
+} from '../commands/GetAlimtalkStatusCommand';
 import { parseBody, parseErrorBody } from './constants';
 
-export const serializeIngestkorea_restJson_GetRequestStatusCommand = async (
-  input: GetRequestStatusCommandInput,
+export const serializeIngestkorea_restJson_GetAlimtalkStatusCommand = async (
+  input: GetAlimtalkStatusCommandInput,
   config: SensClientResolvedConfig
 ): Promise<HttpRequest> => {
   const hostname = "sens.apigw.ntruss.com";
@@ -29,34 +29,35 @@ export const serializeIngestkorea_restJson_GetRequestStatusCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_GetRequestStatusCommand = async (
+export const deserializeIngestkorea_restJson_GetAlimtalkStatusCommand = async (
   output: HttpResponse
-): Promise<GetRequestStatusCommandOutput> => {
+): Promise<GetAlimtalkStatusCommandOutput> => {
   if (output.statusCode > 300) await parseErrorBody(output);
 
-  const data: any = await parseBody(output); // GetRequestStatusOutput
+  const data: any = await parseBody(output); // GetAlimtalkStatusOutput
   let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_GetRequestStatusOutput(data);
+  contents = await deserializeIngestkorea_restJson_GetAlimtalkStatusOutput(data);
 
-  const response: GetRequestStatusCommandOutput = {
+  const response: GetAlimtalkStatusCommandOutput = {
     ...contents
   };
   return response;
 };
 
-export const deserializeIngestkorea_restJson_GetRequestStatusOutput = async (
+export const deserializeIngestkorea_restJson_GetAlimtalkStatusOutput = async (
   output: any
-): Promise<GetRequestStatusOutput> => {
+): Promise<GetAlimtalkStatusOutput> => {
   const { requestId, statusCode, statusName, messages } = output;
   return {
     requestId: requestId != undefined ? requestId : undefined,
     statusCode: statusCode != undefined ? statusCode : undefined,
     statusName: statusName != undefined ? statusName : undefined,
-    messages: messages != undefined ? deserializeIngestkorea_restJson_GetRequestStatusMessages(messages) : undefined
+    messages: messages != undefined
+      ? deserializeIngestkorea_restJson_GetAlimtalkStatusMessages(messages) : undefined
   };
 };
 
-export const deserializeIngestkorea_restJson_GetRequestStatusMessages = (outputs: any[]): StatusMessage[] => {
+export const deserializeIngestkorea_restJson_GetAlimtalkStatusMessages = (outputs: any[]): StatusMessage[] => {
   const result: StatusMessage[] = outputs.map(output => {
     return {
       messageId: output.messageId != undefined ? output.messageId : undefined,

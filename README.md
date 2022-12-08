@@ -20,20 +20,21 @@ npm install @ingestkorea/client-sens
   npm install -D @types/node # save dev mode
   ```
 
-### Support Methods
+### Support Commands
 + SendAlimtalk
-+ GetRequestStatus
-+ GetRequestResult
-+ ListChannels
++ GetAlimtalkStatus (`GetRequestStatus` is deprecated)
++ GetAlimtalkResult (`GetRequestResult` is deprecated)
++ GetAlimtalkTemplate (`GetTemplate` is deprecated)
++ ListAlimtalkTemplates (`ListTemplates` is deprecated)
++ ListAlimtalkChannels (`ListChannels` is deprecated)
 + SendSMS
-+ ListTemplates
-+ GetTemplate
 
 ### Import
 ```ts
 import {
   SensClient,
-  SendAlimtalkCommand, SendAlimtalkCommandInput
+  SendAlimtalkCommand, SendAlimtalkCommandInput,
+  SendSMSCommand, SendSMSCommandInput,
 } from '@ingestkorea/client-sens';
 ```
 
@@ -50,13 +51,17 @@ const client = new SensClient({
     accessKey: ACCESS_KEY,
     secretKey: SECRET_KEY
   },
-  serviceId: { // at least one serviceId required
+  serviceId: {
     sms: 'ncp:sms:kr:123456789xxx:your-service-name', // optional
     kakao: 'ncp:kkobizmsg:kr:9876xxx:your-service-name' // optional
+    // at least one serviceId required
     // if you call send operation without serviceId, sdk throw error
   }
 });
+```
 
+#### SendAlimtalk
+```ts
 let params: SendAlimtalkCommandInput = {
   plusFriendId: PLUS_FRIEND_ID,
   templateCode: TEMPLATE_CODE,
@@ -67,12 +72,29 @@ let params: SendAlimtalkCommandInput = {
 let command = new SendAlimtalkCommand(params);
 ```
 
+#### SendSMS
+```ts
+/**
+ * Automatically set message type('SMS' | 'LMS') according to content-length(euc-kr)
+ * SMS: max 80bytes
+ * LMS: max 2000bytes
+ */
+let params: SendSMSCommandInput = {
+  from: '01012345678',
+  content: CONTENT,
+  messages: [
+    { to: '01087654321' }
+  ]
+};
+let command = new SendSMSCommand(params);
+```
+
 #### Async/await
 ```ts
 (async () => {
   try {
-    const data1 = await client.send(command);
-    console.dir(data1, { depth: 4 });
+    const data = await client.send(command);
+    console.dir(data, { depth: 4 });
   } catch (err){
     console.dir(err, { depth: 4 });
   };

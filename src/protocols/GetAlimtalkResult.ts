@@ -1,14 +1,14 @@
 import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { GetRequestResultOutput, Failover } from '../models/GetRequestResult';
+import { GetAlimtalkResultOutput, Failover } from '../models/GetAlimtalkResult';
 import { SensClientResolvedConfig } from '../SensClient';
 import {
-  GetRequestResultCommandInput,
-  GetRequestResultCommandOutput
-} from '../commands/GetRequestResultCommand';
+  GetAlimtalkResultCommandInput,
+  GetAlimtalkResultCommandOutput
+} from '../commands/GetAlimtalkResultCommand';
 import { parseBody, parseErrorBody } from './constants';
 
-export const serializeIngestkorea_restJson_GetRequestResultCommand = async (
-  input: GetRequestResultCommandInput,
+export const serializeIngestkorea_restJson_GetAlimtalkResultCommand = async (
+  input: GetAlimtalkResultCommandInput,
   config: SensClientResolvedConfig
 ): Promise<HttpRequest> => {
   const hostname = "sens.apigw.ntruss.com";
@@ -25,24 +25,24 @@ export const serializeIngestkorea_restJson_GetRequestResultCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_GetRequestResultCommand = async (
+export const deserializeIngestkorea_restJson_GetAlimtalkResultCommand = async (
   output: HttpResponse
-): Promise<GetRequestResultCommandOutput> => {
+): Promise<GetAlimtalkResultCommandOutput> => {
   if (output.statusCode > 300) await parseErrorBody(output);
 
-  const data: any = await parseBody(output); // GetRequestResultOutput
+  const data: any = await parseBody(output); // GetAlimtalkResultOutput
   let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_GetRequestResultOutput(data);
+  contents = await deserializeIngestkorea_restJson_GetAlimtalkResultOutput(data);
 
-  const response: GetRequestResultCommandOutput = {
+  const response: GetAlimtalkResultCommandOutput = {
     ...contents
   };
   return response;
 };
 
-export const deserializeIngestkorea_restJson_GetRequestResultOutput = async (
+export const deserializeIngestkorea_restJson_GetAlimtalkResultOutput = async (
   output: any
-): Promise<GetRequestResultOutput> => {
+): Promise<GetAlimtalkResultOutput> => {
   return {
     requestId: output.requestId != undefined ? output.requestId : undefined,
 
@@ -64,11 +64,11 @@ export const deserializeIngestkorea_restJson_GetRequestResultOutput = async (
     messageStatusDesc: output.messageStatusDesc != undefined ? output.messageStatusDesc : undefined,
 
     failover: output.failover != undefined ?
-      deserializeIngestkorea_restJson_GetRequestResultFailover(output.failover) : undefined,
+      deserializeIngestkorea_restJson_AlimtalkFailover(output.failover) : undefined,
   };
 };
 
-export const deserializeIngestkorea_restJson_GetRequestResultFailover = (output: any): Failover => {
+export const deserializeIngestkorea_restJson_AlimtalkFailover = (output: any): Failover => {
   return {
     smsServiceId: output.smsServiceId != undefined ? output.smsServiceId : undefined,
     requestId: output.requestId != undefined ? output.requestId : undefined,

@@ -1,14 +1,14 @@
 import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { ListChannelsOutput, Channel } from '../models/ListChannels';
+import { ListAlimtalkChannelsOutput, Channel } from '../models/ListAlimtalkChannels';
 import { SensClientResolvedConfig } from '../SensClient';
 import {
-  ListChannelsCommandInput,
-  ListChannelsCommandOutput
-} from '../commands/ListChannelsCommand';
+  ListAlimtalkChannelsCommandInput,
+  ListAlimtalkChannelsCommandOutput
+} from '../commands/ListAlimtalkChannelsCommand';
 import { parseBody, parseErrorBody } from './constants';
 
-export const serializeIngestkorea_restJson_ListChannelsCommand = async (
-  input: ListChannelsCommandInput,
+export const serializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (
+  input: ListAlimtalkChannelsCommandInput,
   config: SensClientResolvedConfig
 ): Promise<HttpRequest> => {
   const hostname = "sens.apigw.ntruss.com";
@@ -25,30 +25,30 @@ export const serializeIngestkorea_restJson_ListChannelsCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_ListChannelsCommand = async (
+export const deserializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (
   output: HttpResponse
-): Promise<ListChannelsCommandOutput> => {
+): Promise<ListAlimtalkChannelsCommandOutput> => {
   if (output.statusCode > 300) await parseErrorBody(output);
 
-  const data: any = await parseBody(output); // ListChannelsOutput
+  const data: any = await parseBody(output); // ListAlimtalkChannelsOutput
   let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_ListChannelsOutput(data);
+  contents = await deserializeIngestkorea_restJson_ListAlimtalkChannelsOutput(data);
 
-  const response: ListChannelsCommandOutput = {
+  const response: ListAlimtalkChannelsOutput = {
     ...contents
   };
   return response;
 };
 
-export const deserializeIngestkorea_restJson_ListChannelsOutput = async (
+export const deserializeIngestkorea_restJson_ListAlimtalkChannelsOutput = async (
   outputs: any[]
-): Promise<ListChannelsOutput> => {
+): Promise<ListAlimtalkChannelsOutput> => {
   return {
-    channels: deserializeIngestkorea_restJson_ListChannelsChannelInfo(outputs)
+    channels: deserializeIngestkorea_restJson_Channel(outputs)
   };
 };
 
-export const deserializeIngestkorea_restJson_ListChannelsChannelInfo = (
+export const deserializeIngestkorea_restJson_Channel = (
   outputs: any[]
 ): Channel[] => {
   const result: Channel[] = outputs.map(output => {

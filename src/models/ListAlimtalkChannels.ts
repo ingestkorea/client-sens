@@ -1,8 +1,8 @@
-export interface ListChannelsInput {
+export interface ListAlimtalkChannelsInput {
 
 };
 
-export interface ListChannelsOutput {
+export interface ListAlimtalkChannelsOutput {
   channels: Channel[]
 };
 

@@ -1,8 +1,8 @@
-export interface ListTemplatesInput {
+export interface ListAlimtalkTemplatesInput {
   channelId: string
 };
 
-export interface ListTemplatesOutput {
+export interface ListAlimtalkTemplatesOutput {
   templates?: Template[]
 };
 

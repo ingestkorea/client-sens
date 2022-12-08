@@ -1,10 +1,10 @@
 import { ReceivedMessage } from './SendAlimtalk';
 
-export interface GetRequestStatusInput {
+export interface GetAlimtalkStatusInput {
   requestId: string
 };
 
-export interface GetRequestStatusOutput {
+export interface GetAlimtalkStatusOutput {
   requestId?: string
   statusCode?: string,
   statusName?: string,

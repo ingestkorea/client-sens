@@ -1,9 +1,9 @@
-import { StatusMessage } from './GetRequestStatus';
+import { StatusMessage } from './GetAlimtalkStatus';
 
-export interface GetRequestResultInput {
+export interface GetAlimtalkResultInput {
   messageId: string
 };
-export interface GetRequestResultOutput extends StatusMessage {
+export interface GetAlimtalkResultOutput extends StatusMessage {
   requestId?: string,
   failover?: Failover
 };
