@@ -2,6 +2,7 @@
 
 [![npm (scoped)](https://img.shields.io/npm/v/@ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
 [![NPM downloads](https://img.shields.io/npm/dm/@ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
+![Build Status](https://codebuild.ap-northeast-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiOTYrKzNDRklOaWJxS2ZoTkZvY05TU2VGVFdxWFlSWE9DZXJTYVBlbCtwc0J5YTcvdUFKRjlSc1RDTHNDV1J4YnhxMmRLaFdIakpSVWN3QzBHQXp0KzdRPSIsIml2UGFyYW1ldGVyU3BlYyI6IjQ1dUtTMlE1UWhmWmFTRGsiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)
 
 ## Description
 INGESTKOREA SDK Naver Cloud Platform SENS Client for Node.js.
