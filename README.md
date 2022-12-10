@@ -22,13 +22,19 @@ npm install @ingestkorea/client-sens
   ```
 
 ### Support Commands
+
+#### Kakao Alimtalk
 + SendAlimtalk
 + GetAlimtalkStatus (`GetRequestStatus` is deprecated)
 + GetAlimtalkResult (`GetRequestResult` is deprecated)
 + GetAlimtalkTemplate (`GetTemplate` is deprecated)
 + ListAlimtalkTemplates (`ListTemplates` is deprecated)
 + ListAlimtalkChannels (`ListChannels` is deprecated)
+
+#### SMS(LMS)
 + SendSMS
++ GetSMSStatus
++ GetSMSResult
 
 ### Import
 ```ts
