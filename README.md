@@ -83,14 +83,17 @@ let command = new SendAlimtalkCommand(params);
 ```ts
 /**
  * Automatically set message type('SMS' | 'LMS') according to content-length(euc-kr)
- * SMS: max 80bytes
+ * SMS: max 90bytes
  * LMS: max 2000bytes
  */
 let params: SendSMSCommandInput = {
   from: '01012345678',
-  content: CONTENT,
+  content: DEFAULT_CONTENT,
   messages: [
-    { to: '01087654321' }
+    {
+      to: '01087654321',
+      content: OPTIONAL_CONTENT // optional // this OPTIONAL_CONTENT override above DEFAULT_CONTENT
+    }
   ]
 };
 let command = new SendSMSCommand(params);
