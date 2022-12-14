@@ -25,7 +25,7 @@ export interface SensClientResolvedConfig {
 
 export class SensClient {
   config: SensClientResolvedConfig;
-  httpHandler: NodeHttpHandler
+  requestHandler: NodeHttpHandler
   constructor(config: SensClientConfig) {
     const resolvedCredentials = resolveCredentials(config);
     const resolvedServiceId = resolveServiceId(config)
@@ -33,14 +33,14 @@ export class SensClient {
       credentials: { ...resolvedCredentials },
       serviceId: { ...resolvedServiceId }
     };
-    this.httpHandler = new NodeHttpHandler({ connectionTimeout: 3000, socketTimeout: 3000 });
+    this.requestHandler = new NodeHttpHandler({ connectionTimeout: 3000, socketTimeout: 3000 });
   };
   async send<T, P>(command: SensCommand<T, P, SensClientResolvedConfig>): Promise<P> {
     let input = command.input;
     let request = await command.serialize(input, this.config);
     request = await middlewareNcpSigner(request, this.config);
     request = await middlewareIngestkoreaMetadata(request, this.config);
-    let { response } = await this.httpHandler.handle(request);
+    let { response } = await this.requestHandler.handle(request);
     let output = await command.deserialize(response);
     return output;
   };
