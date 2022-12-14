@@ -1,14 +1,14 @@
 import { createHmac } from 'crypto';
-import { HttpRequest } from '@ingestkorea/util-http-handler';
+import { HttpRequest, buildQueryString } from '@ingestkorea/util-http-handler';
 import { SensClientResolvedConfig } from '../SensClient';
 
-export const middlewareSigner = async (
+export const middlewareNcpSigner = async (
   request: HttpRequest, config: SensClientResolvedConfig
 ): Promise<HttpRequest> => {
   const { accessKey, secretKey } = config.credentials;
 
   const method = request.method;
-  const queryString = new URLSearchParams(request.query).toString();
+  const queryString = buildQueryString(request.query);
   const path = queryString ? `${request.path}?${queryString}` : request.path;
 
   const space = " ";
@@ -27,6 +27,6 @@ export const middlewareSigner = async (
     ['x-ncp-iam-access-key']: accessKey,
     ['x-ncp-apigw-timestamp']: timestamp,
     ['x-ncp-apigw-signature-v2']: signature
-  }
+  };
   return request;
 };

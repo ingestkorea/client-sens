@@ -1,7 +1,7 @@
 import { NodeHttpHandler } from '@ingestkorea/util-http-handler';
 import { IngestkoreaError } from '@ingestkorea/util-error-handler';
 import { SensCommand } from './models';
-import { middlewareSigner } from './middleware';
+import { middlewareNcpSigner, middlewareIngestkoreaMetadata } from './middleware';
 
 export type Credentials = {
   accessKey: string,
@@ -38,8 +38,8 @@ export class SensClient {
   async send<T, P>(command: SensCommand<T, P, SensClientResolvedConfig>): Promise<P> {
     let input = command.input;
     let request = await command.serialize(input, this.config);
-    request = await middlewareSigner(request, this.config);
-
+    request = await middlewareNcpSigner(request, this.config);
+    request = await middlewareIngestkoreaMetadata(request, this.config);
     let { response } = await this.httpHandler.handle(request);
     let output = await command.deserialize(response);
     return output;

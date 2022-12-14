@@ -61,10 +61,16 @@ const client = new SensClient({
   serviceId: {
     sms: 'ncp:sms:kr:123456789xxx:your-service-name', // optional
     kakao: 'ncp:kkobizmsg:kr:9876xxx:your-service-name' // optional
-    // at least one serviceId required
-    // if you call send operation without serviceId, sdk throw error
   }
 });
+
+/**
+ * accessKey, secretKey: https://www.ncloud.com/mypage/manage/authkey
+ * serviceId: https://console.ncloud.com/sens/project
+ * 
+ * at least one serviceId required
+ * if you call send operation without serviceId, sdk throw error
+ */
 ```
 
 #### SendAlimtalk
