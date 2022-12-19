@@ -5,7 +5,7 @@ import {
   GetSMSStatusCommandInput,
   GetSMSStatusCommandOutput
 } from '../commands/GetSMSStatusCommand'
-import { parseBody, parseErrorBody } from '../protocols/constants';
+import { parseBody, parseErrorBody } from './constants';
 
 export const serializeIngestkorea_restJson_GetSMSStatusCommand = async (
   input: GetSMSStatusCommandInput,

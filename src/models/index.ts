@@ -6,5 +6,6 @@ export * from './GetAlimtalkTemplate';
 export * from './ListAlimtalkTemplates';
 export * from './ListAlimtalkChannels';
 export * from './SendSMS';
+export * from './SendMMS';
 export * from './GetSMSStatus';
 export * from './GetSMSResult';

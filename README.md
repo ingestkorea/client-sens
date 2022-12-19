@@ -1,8 +1,8 @@
 # @ingestkorea/client-sens
 
 [![npm (scoped)](https://img.shields.io/npm/v/@ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
-[![NPM downloads](https://img.shields.io/npm/dm/@ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
-![Build Status](https://codebuild.ap-northeast-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiOTYrKzNDRklOaWJxS2ZoTkZvY05TU2VGVFdxWFlSWE9DZXJTYVBlbCtwc0J5YTcvdUFKRjlSc1RDTHNDV1J4YnhxMmRLaFdIakpSVWN3QzBHQXp0KzdRPSIsIml2UGFyYW1ldGVyU3BlYyI6IjQ1dUtTMlE1UWhmWmFTRGsiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)
+[![npm downloads](https://img.shields.io/npm/dm/@ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
+![build status](https://codebuild.ap-northeast-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiOTYrKzNDRklOaWJxS2ZoTkZvY05TU2VGVFdxWFlSWE9DZXJTYVBlbCtwc0J5YTcvdUFKRjlSc1RDTHNDV1J4YnhxMmRLaFdIakpSVWN3QzBHQXp0KzdRPSIsIml2UGFyYW1ldGVyU3BlYyI6IjQ1dUtTMlE1UWhmWmFTRGsiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)
 
 ## Description
 INGESTKOREA SDK Naver Cloud Platform SENS Client for Node.js.
@@ -31,10 +31,11 @@ npm install @ingestkorea/client-sens
 + ListAlimtalkTemplates (`ListTemplates` is deprecated)
 + ListAlimtalkChannels (`ListChannels` is deprecated)
 
-#### SMS(LMS)
-+ SendSMS
-+ GetSMSStatus
-+ GetSMSResult
+#### SMS, LMS, MMS
++ SendSMS (SMS, LMS)
++ SendMMS (MMS)
++ GetSMSStatus (SMS, LMS, MMS)
++ GetSMSResult (SMS, LMS, MMS)
 
 ### Import
 ```ts
@@ -42,6 +43,7 @@ import {
   SensClient,
   SendAlimtalkCommand, SendAlimtalkCommandInput,
   SendSMSCommand, SendSMSCommandInput,
+  SendMMSCommand, SendMMSCommandInput,
 } from '@ingestkorea/client-sens';
 ```
 
@@ -85,7 +87,7 @@ let params: SendAlimtalkCommandInput = {
 let command = new SendAlimtalkCommand(params);
 ```
 
-#### SendSMS
+#### SendSMS (SMS, LMS)
 ```ts
 /**
  * Automatically set message type('SMS' | 'LMS') according to content-length(euc-kr)
@@ -96,13 +98,43 @@ let params: SendSMSCommandInput = {
   from: '01012345678',
   content: DEFAULT_CONTENT,
   messages: [
+    { to: '0109182xxxx' },
+    { to: '0104321xxxx', content?: OPTIONAL_CONTENT_01 }
+    { to: '0108765xxxx', content?: OPTIONAL_CONTENT_02, subject?: OPTIONAL_SUBJECT_01 },
+  ]
+};
+/** 
+ * If you do not define the subject and content within the messages, 
+ * it is sent with the value specified as the default subject('제목없음') and content.
+ */
+let command = new SendSMSCommand(params);
+```
+
+#### SendMMS (MMS)
+```ts
+import { readFileSync } from 'node:fs';
+
+let params: SendMMSCommandInput = {
+  from: '01012345678',
+  content: DEFAULT_CONTENT,
+  messages: [
+    { to: '0109182xxxx' },
+    { to: '0104321xxxx', content?: OPTIONAL_CONTENT_01 }
+    { to: '0108765xxxx', content?: OPTIONAL_CONTENT_02, subject?: OPTIONAL_SUBJECT_01 },
+  ],
+  files: [ // support jpg, jpeg
+    { name: '/your/absolute/path/sample-image-1.jpg' },
     {
-      to: '01087654321',
-      content: OPTIONAL_CONTENT // optional // this OPTIONAL_CONTENT override above DEFAULT_CONTENT
+      name: '/your/absolute/path/sample-image-2.jpg', 
+      body?: readFileSync('/your/absolute/path/sample-image-2.jpg', { encoding: 'base64' })
     }
   ]
 };
-let command = new SendSMSCommand(params);
+/** 
+ * If you do not define the subject and content within the messages, 
+ * it is sent with the value specified as the default subject('제목없음') and content.
+ */
+let command = new SendMMSCommand(params);
 ```
 
 #### Async/await

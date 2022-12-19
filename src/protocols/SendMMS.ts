@@ -1,14 +1,14 @@
 import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { SendSMSOutput } from '../models/SendSMS';
+import { SendMMSOutput } from '../models/SendMMS';
 import { SensClientResolvedConfig } from '../SensClient';
 import {
-  SendSMSCommandInput,
-  SendSMSCommandOutput
-} from '../commands/SendSMSCommand'
+  SendMMSCommandInput,
+  SendMMSCommandOutput
+} from '../commands/SendMMSCommand'
 import { parseBody, parseErrorBody } from './constants';
 
-export const serializeIngestkorea_restJson_SendSMSCommand = async (
-  input: SendSMSCommandInput,
+export const serializeIngestkorea_restJson_SendMMSCommand = async (
+  input: SendMMSCommandInput,
   config: SensClientResolvedConfig
 ): Promise<HttpRequest> => {
   const hostname = "sens.apigw.ntruss.com";
@@ -21,10 +21,11 @@ export const serializeIngestkorea_restJson_SendSMSCommand = async (
     from: input.from,
     content: input.content,
     messages: input.messages,
-    type: input.type != undefined ? input.type : 'SMS',
+    type: input.type != undefined ? input.type : 'MMS',
+    files: input.files,
     ...(input.contentType != undefined && { contentType: input.contentType }),
     ...(input.countryCode != undefined && { countryCode: input.countryCode }),
-    ...(input.subject != undefined && input.type === 'LMS' && { subject: input.subject }),
+    ...(input.subject != undefined && { subject: input.subject }),
   });
   return new HttpRequest({
     protocol: 'https:',
@@ -36,24 +37,24 @@ export const serializeIngestkorea_restJson_SendSMSCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_SendSMSCommand = async (
+export const deserializeIngestkorea_restJson_SendMMSCommand = async (
   output: HttpResponse
-): Promise<SendSMSCommandOutput> => {
+): Promise<SendMMSCommandOutput> => {
   if (output.statusCode > 300) await parseErrorBody(output);
 
   const data: any = await parseBody(output); // SendSMSOutput
   let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_SendSMSOutput(data);
+  contents = await deserializeIngestkorea_restJson_SendMMSOutput(data);
 
-  const response: SendSMSCommandOutput = {
+  const response: SendMMSCommandOutput = {
     ...contents
   };
   return response;
 };
 
-export const deserializeIngestkorea_restJson_SendSMSOutput = async (
+export const deserializeIngestkorea_restJson_SendMMSOutput = async (
   output: any
-): Promise<SendSMSOutput> => {
+): Promise<SendMMSOutput> => {
   return {
     requestId: output.requestId ? output.requestId : undefined,
     requestTime: output.requestTime ? output.requestTime : undefined,

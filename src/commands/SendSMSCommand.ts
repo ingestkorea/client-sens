@@ -1,11 +1,12 @@
 import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { SensCommand, SendSMSInput, SendSMSOutput, MessageType, SMSMessage } from '../models';
+import { SensCommand, SendSMSInput, SendSMSOutput, MessageType, SMSMessage, SendFile } from '../models';
 import { SensClientResolvedConfig } from '../SensClient';
 import {
   serializeIngestkorea_restJson_SendSMSCommand,
   deserializeIngestkorea_restJson_SendSMSCommand
 } from '../protocols/SendSMS';
 import { IngestkoreaError } from '@ingestkorea/util-error-handler';
+import { SMS_MAX, LMS_MAX, trimText, prettyPhoneNum, getContentLength } from './constants';
 
 export interface SendSMSCommandInput extends SendSMSInput { };
 export interface SendSMSCommandOutput extends SendSMSOutput { };
@@ -16,15 +17,15 @@ export class SendSMSCommand extends SensCommand<
   input: SendSMSCommandInput
   constructor(input: SendSMSCommandInput) {
     super(input);
-    const content = trimText(input.content)
+    const { content, messageType: defaultMessageType } = resolveInputContent(input.content);
     const { messages, messageType: childMessageType } = resolveInputMessages(input.messages);
-    const messageType = childMessageType == 'LMS' ? childMessageType : checkMessageType(content);
+
     this.input = {
       ...input,
       from: prettyPhoneNum(input.from),
       content: content,
-      type: messageType,
-      messages: messages
+      type: defaultMessageType === childMessageType ? defaultMessageType : 'LMS',
+      messages: messages,
     };
   };
   async serialize(input: SendSMSCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
@@ -40,47 +41,54 @@ export class SendSMSCommand extends SensCommand<
   };
 };
 
-const trimText = (input: string): string => input.trim();
-const prettyPhoneNum = (input: string): string => input.replace(/\-/gi, "");
-
-const getTextBytes = (input: string): number => {
-  return input.split('').reduce((acc, text) => {
-    let byte = Buffer.from(text).length;
-    let modulo = byte % 3
-    modulo ? acc += 1 : acc += 2
-    return acc;
-  }, 0);
-};
-
-const checkMessageType = (input: string): MessageType => {
-  const SMS_MAX = 90;
-  const LMS_MAX = 2000;
-  const euckrBytes = getTextBytes(input)
-
-  if (!euckrBytes) throw new IngestkoreaError({
+const getMessageType = (input: string): MessageType => {
+  const contentLength = getContentLength(input)
+  if (!contentLength) throw new IngestkoreaError({
     code: 400, type: 'Bad Request',
     message: 'Invalid Request', description: `Please check input message`
   });
-  if (euckrBytes > LMS_MAX) throw new IngestkoreaError({
+  if (contentLength > LMS_MAX) throw new IngestkoreaError({
     code: 400, type: 'Bad Request',
     message: 'Invalid Request', description: `Maximum message length is ${LMS_MAX}bytes`
   });
-  return euckrBytes > SMS_MAX ? 'LMS' : 'SMS';
+  return contentLength > SMS_MAX ? 'LMS' : 'SMS';
 };
-const resolveInputMessages = (messages: SMSMessage[]): { messages: SMSMessage[], messageType: MessageType } => {
-  let resolvedMessageType: MessageType = 'SMS';
-  let resolvedMessages: SMSMessage[] = messages.map(message => {
-    const resolvedContent = message.content != undefined ? trimText(message.content) : '';
-    const resolvedSubject = message.subject != undefined ? trimText(message.subject) : '';
-    const messageType = !!resolvedContent != false ? checkMessageType(resolvedContent) : 'SMS';
 
-    if (messageType === 'LMS') resolvedMessageType = messageType;
+const resolveInputContent = (
+  content: string
+): { content: string, messageType: MessageType } => {
+  const resolvedContent = trimText(content);
+  const messageType = getMessageType(resolvedContent);
+  return {
+    content: resolvedContent,
+    messageType: messageType
+  };
+};
 
-    return {
-      to: prettyPhoneNum(message.to),
-      ...(!!resolvedContent != false && { content: resolvedContent }),
-      ...(!!resolvedSubject != false && messageType === 'LMS' && { subject: resolvedSubject }),
-    };
-  });
-  return { messages: resolvedMessages, messageType: resolvedMessageType };
+const resolveInputMessages = (
+  messages: SMSMessage[]
+): { messages: SMSMessage[], messageType: MessageType } => {
+
+  let init: { messages: SMSMessage[], messageType: MessageType } = {
+    messages: [],
+    messageType: 'SMS'
+  };
+
+  const output = messages.reduce((acc, message) => {
+    const to = prettyPhoneNum(message.to);
+    const content = message.content != undefined ? trimText(message.content) : undefined;
+    const subject = message.subject != undefined ? trimText(message.subject) : undefined;
+
+    const messageType: MessageType = content != undefined ? getMessageType(content) : 'SMS';
+
+    if (messageType == 'LMS') acc.messageType = messageType;
+    acc.messages.push({
+      to: to,
+      ...(content != undefined && { content: content }),
+      ...(subject != undefined && acc.messageType === 'LMS' && { subject: subject }),
+    });
+
+    return acc;
+  }, init);
+  return output;
 };

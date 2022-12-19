@@ -1,4 +1,4 @@
-export type MessageType = 'SMS' | 'LMS';
+export type MessageType = 'SMS' | 'LMS' | 'MMS';
 export type MessageContentType = 'COMM' | 'AD';
 export type CountryCode = '1' | '886' | '81' | '86' | '65' | '852' | '82';
 export type SMSMessage = {

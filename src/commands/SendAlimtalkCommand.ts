@@ -37,10 +37,10 @@ export class SendAlimtalkCommand extends SensCommand<
 };
 
 const resolveAlimtalkMessage = (message: AlimtalkMessage): AlimtalkMessage => {
-  const MAXIMUM_STRING_LENGTH = 1000;
-  if (message.content.length > MAXIMUM_STRING_LENGTH) throw new IngestkoreaError({
+  const ALIMTALK_MAX = 1000;
+  if (message.content.length > ALIMTALK_MAX) throw new IngestkoreaError({
     code: 400, type: 'Bad Request',
-    message: 'Invalid Params', description: `Maximum message length is ${MAXIMUM_STRING_LENGTH}`
+    message: 'Invalid Params', description: `Maximum message length is ${ALIMTALK_MAX}`
   });
 
   return {

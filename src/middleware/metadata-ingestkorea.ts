@@ -9,7 +9,7 @@ export const middlewareIngestkoreaMetadata = async (
   request.headers = {
     ...request.headers,
     ['x-ingestkorea-date']: longDate,
-    ['x-ingestkorea-user-agent']: '@ingestkorea/client-sens/1.4.x'
+    ['x-ingestkorea-user-agent']: '@ingestkorea/client-sens/1.5.x'
   };
   return request;
 };
