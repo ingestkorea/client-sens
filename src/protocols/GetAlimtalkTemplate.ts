@@ -1,12 +1,12 @@
-import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { GetAlimtalkTemplateOutput } from '../models/GetAlimtalkTemplate';
-import { SensClientResolvedConfig } from '../SensClient';
+import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
+import { GetAlimtalkTemplateOutput } from "../models/GetAlimtalkTemplate";
+import { SensClientResolvedConfig } from "../SensClient";
 import {
   GetAlimtalkTemplateCommandInput,
-  GetAlimtalkTemplateCommandOutput
-} from '../commands/GetAlimtalkTemplateCommand';
-import { deserializeIngestkorea_restJson_AlimtalkTemplate } from './ListAlimtalkTemplates';
-import { parseBody, parseErrorBody } from './constants';
+  GetAlimtalkTemplateCommandOutput,
+} from "../commands/GetAlimtalkTemplateCommand";
+import { deserializeIngestkorea_restJson_AlimtalkTemplate } from "./ListAlimtalkTemplates";
+import { parseBody, parseErrorBody } from "./constants";
 
 export const serializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (
   input: GetAlimtalkTemplateCommandInput,
@@ -15,19 +15,19 @@ export const serializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (
   const hostname = "sens.apigw.ntruss.com";
   const path = "/alimtalk/v2/services/" + config.serviceId.kakao + "/templates";
   const headers = {
-    "host": hostname
+    host: hostname,
   };
   const query = {
     channelId: input.channelId,
-    templateCode: input.templateCode
+    templateCode: input.templateCode,
   };
   return new HttpRequest({
-    protocol: 'https:',
-    method: 'GET',
+    protocol: "https:",
+    method: "GET",
     hostname: hostname,
     path: path,
     query: query,
-    headers: headers
+    headers: headers,
   });
 };
 
@@ -41,7 +41,7 @@ export const deserializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async 
   contents = await deserializeIngestkorea_restJson_GetAlimtalkTemplateOutput(data);
 
   const response: GetAlimtalkTemplateCommandOutput = {
-    ...contents
+    ...contents,
   };
   return response;
 };
@@ -50,6 +50,6 @@ export const deserializeIngestkorea_restJson_GetAlimtalkTemplateOutput = async (
   output: any
 ): Promise<GetAlimtalkTemplateOutput> => {
   return {
-    templates: deserializeIngestkorea_restJson_AlimtalkTemplate(output)
+    templates: deserializeIngestkorea_restJson_AlimtalkTemplate(output),
   };
 };

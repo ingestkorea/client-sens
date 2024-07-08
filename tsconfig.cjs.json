@@ -4,6 +4,6 @@
     "outDir": "dist-cjs",
     "module": "CommonJS",
     "target": "ES2015",
-    "strict": true,
+    "strict": true
   }
 }

@@ -1,11 +1,8 @@
-import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { SendSMSOutput } from '../models/SendSMS';
-import { SensClientResolvedConfig } from '../SensClient';
-import {
-  SendSMSCommandInput,
-  SendSMSCommandOutput
-} from '../commands/SendSMSCommand'
-import { parseBody, parseErrorBody } from './constants';
+import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
+import { SendSMSOutput } from "../models/SendSMS";
+import { SensClientResolvedConfig } from "../SensClient";
+import { SendSMSCommandInput, SendSMSCommandOutput } from "../commands/SendSMSCommand";
+import { parseBody, parseErrorBody } from "./constants";
 
 export const serializeIngestkorea_restJson_SendSMSCommand = async (
   input: SendSMSCommandInput,
@@ -15,24 +12,24 @@ export const serializeIngestkorea_restJson_SendSMSCommand = async (
   const path = "/sms/v2/services/" + config.serviceId.sms + "/messages";
   const headers = {
     "content-type": "application/json; charset=utf-8",
-    "host": hostname
+    host: hostname,
   };
   const body = JSON.stringify({
     from: input.from,
     content: input.content,
     messages: input.messages,
-    type: input.type != undefined ? input.type : 'SMS',
+    type: input.type != undefined ? input.type : "SMS",
     ...(input.contentType != undefined && { contentType: input.contentType }),
     ...(input.countryCode != undefined && { countryCode: input.countryCode }),
-    ...(input.subject != undefined && input.type === 'LMS' && { subject: input.subject }),
+    ...(input.subject != undefined && input.type === "LMS" && { subject: input.subject }),
   });
   return new HttpRequest({
-    protocol: 'https:',
-    method: 'POST',
+    protocol: "https:",
+    method: "POST",
     hostname: hostname,
     path: path,
     headers: headers,
-    body: body
+    body: body,
   });
 };
 
@@ -46,7 +43,7 @@ export const deserializeIngestkorea_restJson_SendSMSCommand = async (
   contents = await deserializeIngestkorea_restJson_SendSMSOutput(data);
 
   const response: SendSMSCommandOutput = {
-    ...contents
+    ...contents,
   };
   return response;
 };

@@ -1,15 +1,16 @@
-import { HttpRequest } from '@ingestkorea/util-http-handler';
-import { SensClientResolvedConfig } from '../SensClient';
+import { HttpRequest } from "@ingestkorea/util-http-handler";
+import { SensClientResolvedConfig } from "../SensClient";
 
 export const middlewareIngestkoreaMetadata = async (
-  request: HttpRequest, config: SensClientResolvedConfig
+  request: HttpRequest,
+  config: SensClientResolvedConfig
 ): Promise<HttpRequest> => {
-  const { longDate } = await convertFormatDate(request.headers['x-ncp-apigw-timestamp']);
+  const { longDate } = await convertFormatDate(request.headers["x-ncp-apigw-timestamp"]);
 
   request.headers = {
     ...request.headers,
-    ['x-ingestkorea-date']: longDate,
-    ['x-ingestkorea-user-agent']: '@ingestkorea/client-sens/1.5.x'
+    ["x-ingestkorea-date"]: longDate,
+    ["x-ingestkorea-user-agent"]: "@ingestkorea/client-sens/1.5.x",
   };
   return request;
 };

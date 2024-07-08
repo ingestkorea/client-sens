@@ -1,5 +1,5 @@
-.dockerignore
-package-lock.json
 node_modules/
-src/test-*/
+src/test/
 dist-*/
+package-lock.json
+.dockerignore

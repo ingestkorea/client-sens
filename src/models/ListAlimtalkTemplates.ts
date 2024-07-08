@@ -1,37 +1,37 @@
 export interface ListAlimtalkTemplatesInput {
-  channelId: string
-};
+  channelId: string;
+}
 
 export interface ListAlimtalkTemplatesOutput {
-  templates?: Template[]
-};
+  templates?: Template[];
+}
 
 export interface Template {
-  createTime?: string,
-  updateTime?: string,
-  channelId?: string,
-  templateCode?: string,
-  templateName?: string,
-  content?: string,
-  comments?: Comment[],
-  templateInspectionStatus?: string,
-  templateStatus?: string,
-  buttons?: Button[]
-};
+  createTime?: string;
+  updateTime?: string;
+  channelId?: string;
+  templateCode?: string;
+  templateName?: string;
+  content?: string;
+  comments?: Comment[];
+  templateInspectionStatus?: string;
+  templateStatus?: string;
+  buttons?: Button[];
+}
 
 export interface Comment {
-  commentId?: string,
-  content?: string,
-  status?: string,
-  createTime?: string
-};
+  commentId?: string;
+  content?: string;
+  status?: string;
+  createTime?: string;
+}
 
 export interface Button {
-  order?: number,
-  type?: string,
-  name?: string,
-  linkMobile?: string,
-  linkPc?: string,
-  schemeIos?: string,
-  schemeAndroid?: string
-};
+  order?: number;
+  type?: string;
+  name?: string;
+  linkMobile?: string;
+  linkPc?: string;
+  schemeIos?: string;
+  schemeAndroid?: string;
+}

@@ -1,7 +1,7 @@
-.gitignore
-.dockerignore
-package-lock.json
-tsconfig*.json
 node_modules/
 src/
-dist-*/test-*/
+dist-*/test/
+package-lock.json
+tsconfig*.json
+.gitignore
+.dockerignore

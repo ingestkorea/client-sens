@@ -4,6 +4,6 @@
     "outDir": "dist-es",
     "module": "ESNext",
     "target": "ES2018",
-    "strict": true,
+    "strict": true
   }
 }

@@ -1,34 +1,43 @@
-import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { SensCommand, GetAlimtalkResultInput, GetAlimtalkResultOutput } from '../models';
-import { SensClientResolvedConfig } from '../SensClient';
+import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
+import { SensCommand, GetAlimtalkResultInput, GetAlimtalkResultOutput } from "../models";
+import { SensClientResolvedConfig } from "../SensClient";
 import {
   serializeIngestkorea_restJson_GetAlimtalkResultCommand,
-  deserializeIngestkorea_restJson_GetAlimtalkResultCommand
-} from '../protocols/GetAlimtalkResult';
-import { IngestkoreaError } from '@ingestkorea/util-error-handler';
+  deserializeIngestkorea_restJson_GetAlimtalkResultCommand,
+} from "../protocols/GetAlimtalkResult";
+import { IngestkoreaError } from "@ingestkorea/util-error-handler";
 
-export interface GetAlimtalkResultCommandInput extends GetAlimtalkResultInput { };
-export interface GetAlimtalkResultCommandOutput extends GetAlimtalkResultOutput { };
+export interface GetAlimtalkResultCommandInput extends GetAlimtalkResultInput {}
+export interface GetAlimtalkResultCommandOutput extends GetAlimtalkResultOutput {}
 
 export class GetAlimtalkResultCommand extends SensCommand<
-  GetAlimtalkResultCommandInput, GetAlimtalkResultCommandOutput, SensClientResolvedConfig
+  GetAlimtalkResultCommandInput,
+  GetAlimtalkResultCommandOutput,
+  SensClientResolvedConfig
 > {
-  input: GetAlimtalkResultCommandInput
+  input: GetAlimtalkResultCommandInput;
   constructor(input: GetAlimtalkResultCommandInput) {
     super(input);
     this.input = {
-      ...input
+      ...input,
     };
-  };
-  async serialize(input: GetAlimtalkResultCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
-    if (!config.serviceId.kakao) throw new IngestkoreaError({
-      code: 400, type: 'Bad Request', message: 'Invalid Params', description: 'Please Check Kakao ServiceId'
-    });
+  }
+  async serialize(
+    input: GetAlimtalkResultCommandInput,
+    config: SensClientResolvedConfig
+  ): Promise<HttpRequest> {
+    if (!config.serviceId.kakao)
+      throw new IngestkoreaError({
+        code: 400,
+        type: "Bad Request",
+        message: "Invalid Params",
+        description: "Please Check Kakao ServiceId",
+      });
     let request = await serializeIngestkorea_restJson_GetAlimtalkResultCommand(input, config);
     return request;
-  };
+  }
   async deserialize(response: HttpResponse): Promise<GetAlimtalkResultCommandOutput> {
     let output = await deserializeIngestkorea_restJson_GetAlimtalkResultCommand(response);
     return output;
-  };
-};
+  }
+}

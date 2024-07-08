@@ -1,17 +1,15 @@
-export interface ListAlimtalkChannelsInput {
-
-};
+export interface ListAlimtalkChannelsInput {}
 
 export interface ListAlimtalkChannelsOutput {
-  channels: Channel[]
-};
+  channels: Channel[];
+}
 
 export interface Channel {
-  createTime?: string
-  updateTime?: string
-  serviceId?: string
-  channelId?: string
-  channelName?: string
-  channelStatus?: string
-  useSmsFailover?: string
-};
+  createTime?: string;
+  updateTime?: string;
+  serviceId?: string;
+  channelId?: string;
+  channelName?: string;
+  channelStatus?: string;
+  useSmsFailover?: string;
+}

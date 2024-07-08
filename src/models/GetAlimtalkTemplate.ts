@@ -1,9 +1,7 @@
-import { ListAlimtalkTemplatesInput, ListAlimtalkTemplatesOutput } from './ListAlimtalkTemplates';
+import { ListAlimtalkTemplatesInput, ListAlimtalkTemplatesOutput } from "./ListAlimtalkTemplates";
 
 export interface GetAlimtalkTemplateInput extends ListAlimtalkTemplatesInput {
-  templateCode: string
-};
+  templateCode: string;
+}
 
-export interface GetAlimtalkTemplateOutput extends ListAlimtalkTemplatesOutput {
-
-};
+export interface GetAlimtalkTemplateOutput extends ListAlimtalkTemplatesOutput {}

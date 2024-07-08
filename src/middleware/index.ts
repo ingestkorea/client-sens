@@ -1,2 +1,2 @@
-export * from './signer-ncp';
-export * from './metadata-ingestkorea';
+export * from "./signer-ncp";
+export * from "./metadata-ingestkorea";

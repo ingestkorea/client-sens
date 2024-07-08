@@ -1,11 +1,11 @@
-import { HttpRequest, HttpResponse } from '@ingestkorea/util-http-handler';
-import { GetAlimtalkResultOutput, Failover } from '../models/GetAlimtalkResult';
-import { SensClientResolvedConfig } from '../SensClient';
+import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
+import { GetAlimtalkResultOutput, Failover } from "../models/GetAlimtalkResult";
+import { SensClientResolvedConfig } from "../SensClient";
 import {
   GetAlimtalkResultCommandInput,
-  GetAlimtalkResultCommandOutput
-} from '../commands/GetAlimtalkResultCommand';
-import { parseBody, parseErrorBody } from './constants';
+  GetAlimtalkResultCommandOutput,
+} from "../commands/GetAlimtalkResultCommand";
+import { parseBody, parseErrorBody } from "./constants";
 
 export const serializeIngestkorea_restJson_GetAlimtalkResultCommand = async (
   input: GetAlimtalkResultCommandInput,
@@ -14,14 +14,14 @@ export const serializeIngestkorea_restJson_GetAlimtalkResultCommand = async (
   const hostname = "sens.apigw.ntruss.com";
   const path = "/alimtalk/v2/services/" + config.serviceId.kakao + "/messages/" + input.messageId;
   const headers = {
-    "host": hostname
+    host: hostname,
   };
   return new HttpRequest({
-    protocol: 'https:',
-    method: 'GET',
+    protocol: "https:",
+    method: "GET",
     hostname: hostname,
     path: path,
-    headers: headers
+    headers: headers,
   });
 };
 
@@ -35,7 +35,7 @@ export const deserializeIngestkorea_restJson_GetAlimtalkResultCommand = async (
   contents = await deserializeIngestkorea_restJson_GetAlimtalkResultOutput(data);
 
   const response: GetAlimtalkResultCommandOutput = {
-    ...contents
+    ...contents,
   };
   return response;
 };
@@ -63,8 +63,10 @@ export const deserializeIngestkorea_restJson_GetAlimtalkResultOutput = async (
     messageStatusName: output.messageStatusName != undefined ? output.messageStatusName : undefined,
     messageStatusDesc: output.messageStatusDesc != undefined ? output.messageStatusDesc : undefined,
 
-    failover: output.failover != undefined ?
-      deserializeIngestkorea_restJson_AlimtalkFailover(output.failover) : undefined,
+    failover:
+      output.failover != undefined
+        ? deserializeIngestkorea_restJson_AlimtalkFailover(output.failover)
+        : undefined,
   };
 };
 

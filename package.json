@@ -1,6 +1,6 @@
 {
   "name": "@ingestkorea/client-sens",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "INGESTKOREA SDK Naver Cloud Platform SENS Client for Node.js.",
   "main": "./dist-cjs/index.js",
   "module": "./dist-es/index.js",
@@ -23,7 +23,8 @@
   },
   "homepage": "https://github.com/ingestkorea/client-sens#readme",
   "devDependencies": {
-    "@types/node": "^18.11.0"
+    "@types/node": "^18.11.0",
+    "typescript": "^5.5.3"
   },
   "dependencies": {
     "@ingestkorea/util-error-handler": "^1.0.3",
