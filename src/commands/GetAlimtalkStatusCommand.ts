@@ -1,5 +1,5 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SensCommand, GetAlimtalkStatusInput, GetAlimtalkStatusOutput } from "../models";
+import { SensCommand, GetAlimtalkStatusInput, GetAlimtalkStatusOutput, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import {
   serializeIngestkorea_restJson_GetAlimtalkStatusCommand,
@@ -8,7 +8,7 @@ import {
 import { IngestkoreaError } from "@ingestkorea/util-error-handler";
 
 export interface GetAlimtalkStatusCommandInput extends GetAlimtalkStatusInput {}
-export interface GetAlimtalkStatusCommandOutput extends GetAlimtalkStatusOutput {}
+export interface GetAlimtalkStatusCommandOutput extends GetAlimtalkStatusOutput, MetadataBearer {}
 
 export class GetAlimtalkStatusCommand extends SensCommand<
   GetAlimtalkStatusCommandInput,
@@ -22,10 +22,7 @@ export class GetAlimtalkStatusCommand extends SensCommand<
       ...input,
     };
   }
-  async serialize(
-    input: GetAlimtalkStatusCommandInput,
-    config: SensClientResolvedConfig
-  ): Promise<HttpRequest> {
+  async serialize(input: GetAlimtalkStatusCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
     if (!config.serviceId.kakao)
       throw new IngestkoreaError({
         code: 400,
@@ -36,7 +33,10 @@ export class GetAlimtalkStatusCommand extends SensCommand<
     let request = await serializeIngestkorea_restJson_GetAlimtalkStatusCommand(input, config);
     return request;
   }
-  async deserialize(response: HttpResponse): Promise<GetAlimtalkStatusCommandOutput> {
+  async deserialize(response: {
+    response: HttpResponse;
+    output: MetadataBearer;
+  }): Promise<GetAlimtalkStatusCommandOutput> {
     let output = await deserializeIngestkorea_restJson_GetAlimtalkStatusCommand(response);
     return output;
   }

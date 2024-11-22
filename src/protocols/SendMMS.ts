@@ -1,8 +1,8 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SendMMSOutput } from "../models/SendMMS";
+import { SendMMSOutput, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import { SendMMSCommandInput, SendMMSCommandOutput } from "../commands/SendMMSCommand";
-import { parseBody, parseErrorBody } from "./constants";
+import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
 
 export const serializeIngestkorea_restJson_SendMMSCommand = async (
   input: SendMMSCommandInput,
@@ -34,24 +34,27 @@ export const serializeIngestkorea_restJson_SendMMSCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_SendMMSCommand = async (
-  output: HttpResponse
-): Promise<SendMMSCommandOutput> => {
-  if (output.statusCode > 300) await parseErrorBody(output);
+export const deserializeIngestkorea_restJson_SendMMSCommand = async (response: {
+  response: HttpResponse;
+  output: MetadataBearer;
+}): Promise<SendMMSCommandOutput> => {
+  const { response: httpResponse, output } = response;
+  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
 
-  const data: any = await parseBody(output); // SendSMSOutput
+  const data: any = await parseBody(httpResponse); // SendSMSOutput
   let contents: any = {};
   contents = await deserializeIngestkorea_restJson_SendMMSOutput(data);
 
-  const response: SendMMSCommandOutput = {
+  return {
+    $metadata: {
+      ...deserializeMetadata(httpResponse),
+      ...output.$metadata,
+    },
     ...contents,
   };
-  return response;
 };
 
-export const deserializeIngestkorea_restJson_SendMMSOutput = async (
-  output: any
-): Promise<SendMMSOutput> => {
+export const deserializeIngestkorea_restJson_SendMMSOutput = async (output: any): Promise<SendMMSOutput> => {
   return {
     requestId: output.requestId ? output.requestId : undefined,
     requestTime: output.requestTime ? output.requestTime : undefined,

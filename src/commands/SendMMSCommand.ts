@@ -1,12 +1,5 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import {
-  SensCommand,
-  SendMMSInput,
-  SendMMSOutput,
-  MessageType,
-  SMSMessage,
-  SendFile,
-} from "../models";
+import { SensCommand, SendMMSInput, SendMMSOutput, MessageType, SMSMessage, SendFile, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import {
   serializeIngestkorea_restJson_SendMMSCommand,
@@ -20,13 +13,9 @@ import { randomUUID } from "node:crypto";
 import { readFileSync, existsSync } from "node:fs";
 
 export interface SendMMSCommandInput extends SendMMSInput {}
-export interface SendMMSCommandOutput extends SendMMSOutput {}
+export interface SendMMSCommandOutput extends SendMMSOutput, MetadataBearer {}
 
-export class SendMMSCommand extends SensCommand<
-  SendMMSCommandInput,
-  SendMMSCommandOutput,
-  SensClientResolvedConfig
-> {
+export class SendMMSCommand extends SensCommand<SendMMSCommandInput, SendMMSCommandOutput, SensClientResolvedConfig> {
   input: SendMMSCommandInput;
   constructor(input: SendMMSCommandInput) {
     super(input);
@@ -39,10 +28,7 @@ export class SendMMSCommand extends SensCommand<
       files: resolveInputFiles(input.files),
     };
   }
-  async serialize(
-    input: SendMMSCommandInput,
-    config: SensClientResolvedConfig
-  ): Promise<HttpRequest> {
+  async serialize(input: SendMMSCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
     if (!config.serviceId.sms)
       throw new IngestkoreaError({
         code: 400,
@@ -53,7 +39,7 @@ export class SendMMSCommand extends SensCommand<
     let request = await serializeIngestkorea_restJson_SendMMSCommand(input, config);
     return request;
   }
-  async deserialize(response: HttpResponse): Promise<SendMMSCommandOutput> {
+  async deserialize(response: { response: HttpResponse; output: MetadataBearer }): Promise<SendMMSCommandOutput> {
     let output = await deserializeIngestkorea_restJson_SendMMSCommand(response);
     return output;
   }

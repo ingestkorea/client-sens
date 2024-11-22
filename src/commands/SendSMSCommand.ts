@@ -1,12 +1,5 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import {
-  SensCommand,
-  SendSMSInput,
-  SendSMSOutput,
-  MessageType,
-  SMSMessage,
-  SendFile,
-} from "../models";
+import { SensCommand, SendSMSInput, SendSMSOutput, MessageType, SMSMessage, SendFile, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import {
   serializeIngestkorea_restJson_SendSMSCommand,
@@ -16,13 +9,9 @@ import { IngestkoreaError } from "@ingestkorea/util-error-handler";
 import { SMS_MAX, LMS_MAX, trimText, prettyPhoneNum, getContentLength } from "./constants";
 
 export interface SendSMSCommandInput extends SendSMSInput {}
-export interface SendSMSCommandOutput extends SendSMSOutput {}
+export interface SendSMSCommandOutput extends SendSMSOutput, MetadataBearer {}
 
-export class SendSMSCommand extends SensCommand<
-  SendSMSCommandInput,
-  SendSMSCommandOutput,
-  SensClientResolvedConfig
-> {
+export class SendSMSCommand extends SensCommand<SendSMSCommandInput, SendSMSCommandOutput, SensClientResolvedConfig> {
   input: SendSMSCommandInput;
   constructor(input: SendSMSCommandInput) {
     super(input);
@@ -37,10 +26,7 @@ export class SendSMSCommand extends SensCommand<
       messages: messages,
     };
   }
-  async serialize(
-    input: SendSMSCommandInput,
-    config: SensClientResolvedConfig
-  ): Promise<HttpRequest> {
+  async serialize(input: SendSMSCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
     if (!config.serviceId.sms)
       throw new IngestkoreaError({
         code: 400,
@@ -51,7 +37,7 @@ export class SendSMSCommand extends SensCommand<
     let request = await serializeIngestkorea_restJson_SendSMSCommand(input, config);
     return request;
   }
-  async deserialize(response: HttpResponse): Promise<SendSMSCommandOutput> {
+  async deserialize(response: { response: HttpResponse; output: MetadataBearer }): Promise<SendSMSCommandOutput> {
     let output = await deserializeIngestkorea_restJson_SendSMSCommand(response);
     return output;
   }
@@ -85,9 +71,7 @@ const resolveInputContent = (content: string): { content: string; messageType: M
   };
 };
 
-const resolveInputMessages = (
-  messages: SMSMessage[]
-): { messages: SMSMessage[]; messageType: MessageType } => {
+const resolveInputMessages = (messages: SMSMessage[]): { messages: SMSMessage[]; messageType: MessageType } => {
   let init: { messages: SMSMessage[]; messageType: MessageType } = {
     messages: [],
     messageType: "SMS",

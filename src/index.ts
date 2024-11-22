@@ -1,2 +1,2 @@
-export * from './commands';
-export * from './SensClient';
+export * from "./commands";
+export * from "./SensClient";

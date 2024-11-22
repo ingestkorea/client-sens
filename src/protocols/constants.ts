@@ -1,5 +1,6 @@
 import { IngestkoreaError, ingestkoreaErrorCodeChecker } from "@ingestkorea/util-error-handler";
 import { HttpResponse, collectBodyString, destroyStream } from "@ingestkorea/util-http-handler";
+import { ResponseMetadata } from "../models";
 
 export const parseBody = async (output: HttpResponse): Promise<any> => {
   const { statusCode, headers, body: streamBody } = output;
@@ -45,4 +46,10 @@ export const parseErrorBody = async (output: HttpResponse): Promise<void> => {
 
 const verifyJsonHeader = async (contentType: string): Promise<boolean> => {
   return /application\/json/gi.exec(contentType) ? true : false;
+};
+
+export const deserializeMetadata = (response: HttpResponse): ResponseMetadata => {
+  return {
+    httpStatusCode: response.statusCode,
+  };
 };

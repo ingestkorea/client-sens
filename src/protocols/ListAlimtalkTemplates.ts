@@ -1,16 +1,11 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import {
-  ListAlimtalkTemplatesOutput,
-  Template,
-  Comment,
-  Button,
-} from "../models/ListAlimtalkTemplates";
+import { ListAlimtalkTemplatesOutput, Template, Comment, Button, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import {
   ListAlimtalkTemplatesCommandInput,
   ListAlimtalkTemplatesCommandOutput,
 } from "../commands/ListAlimtalkTemplatesCommand";
-import { parseBody, parseErrorBody } from "./constants";
+import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
 
 export const serializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async (
   input: ListAlimtalkTemplatesCommandInput,
@@ -34,19 +29,24 @@ export const serializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async 
   });
 };
 
-export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async (
-  output: HttpResponse
-): Promise<ListAlimtalkTemplatesCommandOutput> => {
-  if (output.statusCode > 300) await parseErrorBody(output);
+export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async (response: {
+  response: HttpResponse;
+  output: MetadataBearer;
+}): Promise<ListAlimtalkTemplatesCommandOutput> => {
+  const { response: httpResponse, output } = response;
+  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
 
-  const data: any = await parseBody(output); // ListAlimtalkTemplatesOutput
+  const data: any = await parseBody(httpResponse); // ListAlimtalkTemplatesOutput
   let contents: any = {};
   contents = await deserializeIngestkorea_restJson_ListAlimtalkTemplatesOutput(data);
 
-  const response: ListAlimtalkTemplatesCommandOutput = {
+  return {
+    $metadata: {
+      ...deserializeMetadata(httpResponse),
+      ...output.$metadata,
+    },
     ...contents,
   };
-  return response;
 };
 
 export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesOutput = async (
@@ -82,9 +82,7 @@ export const deserializeIngestkorea_restJson_AlimtalkTemplate = (outputs: any[])
   return result;
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplateComment = (
-  outputs: any[]
-): Comment[] => {
+export const deserializeIngestkorea_restJson_AlimtalkTemplateComment = (outputs: any[]): Comment[] => {
   let result = outputs.map((output) => {
     return {
       commentId: output.commentId != undefined ? output.commentId : undefined,
@@ -96,9 +94,7 @@ export const deserializeIngestkorea_restJson_AlimtalkTemplateComment = (
   return result;
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplateButton = (
-  outputs: any[]
-): Button[] => {
+export const deserializeIngestkorea_restJson_AlimtalkTemplateButton = (outputs: any[]): Button[] => {
   let result = outputs.map((output) => {
     return {
       order: output.order != undefined ? output.order : undefined,

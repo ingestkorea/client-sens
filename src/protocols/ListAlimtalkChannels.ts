@@ -1,11 +1,11 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { ListAlimtalkChannelsOutput, Channel } from "../models/ListAlimtalkChannels";
+import { ListAlimtalkChannelsOutput, Channel, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import {
   ListAlimtalkChannelsCommandInput,
   ListAlimtalkChannelsCommandOutput,
 } from "../commands/ListAlimtalkChannelsCommand";
-import { parseBody, parseErrorBody } from "./constants";
+import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
 
 export const serializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (
   input: ListAlimtalkChannelsCommandInput,
@@ -25,19 +25,24 @@ export const serializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (
-  output: HttpResponse
-): Promise<ListAlimtalkChannelsCommandOutput> => {
-  if (output.statusCode > 300) await parseErrorBody(output);
+export const deserializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (response: {
+  response: HttpResponse;
+  output: MetadataBearer;
+}): Promise<ListAlimtalkChannelsCommandOutput> => {
+  const { response: httpResponse, output } = response;
+  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
 
-  const data: any = await parseBody(output); // ListAlimtalkChannelsOutput
+  const data: any = await parseBody(httpResponse); // ListAlimtalkChannelsOutput
   let contents: any = {};
   contents = await deserializeIngestkorea_restJson_ListAlimtalkChannelsOutput(data);
 
-  const response: ListAlimtalkChannelsOutput = {
+  return {
+    $metadata: {
+      ...deserializeMetadata(httpResponse),
+      ...output.$metadata,
+    },
     ...contents,
   };
-  return response;
 };
 
 export const deserializeIngestkorea_restJson_ListAlimtalkChannelsOutput = async (

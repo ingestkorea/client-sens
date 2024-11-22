@@ -1,7 +1,8 @@
 node_modules/
 src/
 dist-*/test/
-package-lock.json
-tsconfig*.json
 .gitignore
 .dockerignore
+.prettierignore
+package-lock.json
+tsconfig*.json

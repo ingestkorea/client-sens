@@ -1,11 +1,9 @@
 import { createHmac } from "crypto";
 import { HttpRequest, buildQueryString } from "@ingestkorea/util-http-handler";
 import { SensClientResolvedConfig } from "../SensClient";
+import { BuildMiddleware } from "../models";
 
-export const middlewareNcpSigner = async (
-  request: HttpRequest,
-  config: SensClientResolvedConfig
-): Promise<HttpRequest> => {
+export const middlewareNcpSigner: BuildMiddleware = async (request: HttpRequest, config: SensClientResolvedConfig) => {
   const { accessKey, secretKey } = config.credentials;
 
   const method = request.method;

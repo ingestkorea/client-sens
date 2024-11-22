@@ -1,11 +1,8 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { GetAlimtalkResultOutput, Failover } from "../models/GetAlimtalkResult";
+import { GetAlimtalkResultOutput, Failover, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
-import {
-  GetAlimtalkResultCommandInput,
-  GetAlimtalkResultCommandOutput,
-} from "../commands/GetAlimtalkResultCommand";
-import { parseBody, parseErrorBody } from "./constants";
+import { GetAlimtalkResultCommandInput, GetAlimtalkResultCommandOutput } from "../commands/GetAlimtalkResultCommand";
+import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
 
 export const serializeIngestkorea_restJson_GetAlimtalkResultCommand = async (
   input: GetAlimtalkResultCommandInput,
@@ -25,19 +22,24 @@ export const serializeIngestkorea_restJson_GetAlimtalkResultCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_GetAlimtalkResultCommand = async (
-  output: HttpResponse
-): Promise<GetAlimtalkResultCommandOutput> => {
-  if (output.statusCode > 300) await parseErrorBody(output);
+export const deserializeIngestkorea_restJson_GetAlimtalkResultCommand = async (response: {
+  response: HttpResponse;
+  output: MetadataBearer;
+}): Promise<GetAlimtalkResultCommandOutput> => {
+  const { response: httpResponse, output } = response;
+  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
 
-  const data: any = await parseBody(output); // GetAlimtalkResultOutput
+  const data: any = await parseBody(httpResponse);
   let contents: any = {};
   contents = await deserializeIngestkorea_restJson_GetAlimtalkResultOutput(data);
 
-  const response: GetAlimtalkResultCommandOutput = {
+  return {
+    $metadata: {
+      ...deserializeMetadata(httpResponse),
+      ...output.$metadata,
+    },
     ...contents,
   };
-  return response;
 };
 
 export const deserializeIngestkorea_restJson_GetAlimtalkResultOutput = async (
@@ -64,9 +66,7 @@ export const deserializeIngestkorea_restJson_GetAlimtalkResultOutput = async (
     messageStatusDesc: output.messageStatusDesc != undefined ? output.messageStatusDesc : undefined,
 
     failover:
-      output.failover != undefined
-        ? deserializeIngestkorea_restJson_AlimtalkFailover(output.failover)
-        : undefined,
+      output.failover != undefined ? deserializeIngestkorea_restJson_AlimtalkFailover(output.failover) : undefined,
   };
 };
 

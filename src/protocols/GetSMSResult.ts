@@ -1,11 +1,8 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { GetSMSResultOutput, SMSResultMessage, File } from "../models/GetSMSResult";
+import { GetSMSResultOutput, SMSResultMessage, File, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
-import {
-  GetSMSResultCommandInput,
-  GetSMSResultCommandOutput,
-} from "../commands/GetSMSResultCommand";
-import { parseBody, parseErrorBody } from "./constants";
+import { GetSMSResultCommandInput, GetSMSResultCommandOutput } from "../commands/GetSMSResultCommand";
+import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
 
 export const serializeIngestkorea_restJson_GetSMSResultCommand = async (
   input: GetSMSResultCommandInput,
@@ -25,36 +22,35 @@ export const serializeIngestkorea_restJson_GetSMSResultCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_GetSMSResultCommand = async (
-  output: HttpResponse
-): Promise<GetSMSResultCommandOutput> => {
-  if (output.statusCode > 300) await parseErrorBody(output);
+export const deserializeIngestkorea_restJson_GetSMSResultCommand = async (response: {
+  response: HttpResponse;
+  output: MetadataBearer;
+}): Promise<GetSMSResultCommandOutput> => {
+  const { response: httpResponse, output } = response;
+  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
 
-  const data: any = await parseBody(output); // GetSMSResultOutput
+  const data: any = await parseBody(httpResponse); // GetSMSResultOutput
   let contents: any = {};
   contents = await deserializeIngestkorea_restJson_GetSMSResultOutput(data);
 
-  const response: GetSMSResultCommandOutput = {
+  return {
+    $metadata: {
+      ...deserializeMetadata(httpResponse),
+      ...output.$metadata,
+    },
     ...contents,
   };
-  return response;
 };
 
-export const deserializeIngestkorea_restJson_GetSMSResultOutput = async (
-  output: any
-): Promise<GetSMSResultOutput> => {
+export const deserializeIngestkorea_restJson_GetSMSResultOutput = async (output: any): Promise<GetSMSResultOutput> => {
   return {
     statusCode: output.statusCode ? output.statusCode : undefined,
     statusName: output.statusName ? output.statusName : undefined,
-    messages: output.messages
-      ? deserializeIngestkorea_restJson_SMSResultMessage(output.messages)
-      : undefined,
+    messages: output.messages ? deserializeIngestkorea_restJson_SMSResultMessage(output.messages) : undefined,
   };
 };
 
-export const deserializeIngestkorea_restJson_SMSResultMessage = (
-  outputs: any[]
-): SMSResultMessage[] => {
+export const deserializeIngestkorea_restJson_SMSResultMessage = (outputs: any[]): SMSResultMessage[] => {
   let result: SMSResultMessage[] = outputs.map((output) => {
     return {
       requestTime: output.requestTime != undefined ? output.requestTime : undefined,
@@ -69,8 +65,7 @@ export const deserializeIngestkorea_restJson_SMSResultMessage = (
       statusName: output.statusName != undefined ? output.statusName : undefined,
       completeTime: output.completeTime != undefined ? output.completeTime : undefined,
       telcoCode: output.telcoCode != undefined ? output.telcoCode : undefined,
-      files:
-        output.files != undefined ? deserializeIngestkorea_restJson_File(output.files) : undefined,
+      files: output.files != undefined ? deserializeIngestkorea_restJson_File(output.files) : undefined,
     };
   });
   return result;

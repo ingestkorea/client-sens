@@ -1,11 +1,8 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { GetSMSStatusOutput, SMSStatusMessage } from "../models/GetSMSStatus";
+import { GetSMSStatusOutput, SMSStatusMessage, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
-import {
-  GetSMSStatusCommandInput,
-  GetSMSStatusCommandOutput,
-} from "../commands/GetSMSStatusCommand";
-import { parseBody, parseErrorBody } from "./constants";
+import { GetSMSStatusCommandInput, GetSMSStatusCommandOutput } from "../commands/GetSMSStatusCommand";
+import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
 
 export const serializeIngestkorea_restJson_GetSMSStatusCommand = async (
   input: GetSMSStatusCommandInput,
@@ -29,37 +26,36 @@ export const serializeIngestkorea_restJson_GetSMSStatusCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_GetSMSStatusCommand = async (
-  output: HttpResponse
-): Promise<GetSMSStatusCommandOutput> => {
-  if (output.statusCode > 300) await parseErrorBody(output);
+export const deserializeIngestkorea_restJson_GetSMSStatusCommand = async (response: {
+  response: HttpResponse;
+  output: MetadataBearer;
+}): Promise<GetSMSStatusCommandOutput> => {
+  const { response: httpResponse, output } = response;
+  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
 
-  const data: any = await parseBody(output); // GetSMSStatusOutput
+  const data: any = await parseBody(httpResponse);
   let contents: any = {};
   contents = await deserializeIngestkorea_restJson_GetSMSStatusOutput(data);
 
-  const response: GetSMSStatusCommandOutput = {
+  return {
+    $metadata: {
+      ...deserializeMetadata(httpResponse),
+      ...output.$metadata,
+    },
     ...contents,
   };
-  return response;
 };
 
-export const deserializeIngestkorea_restJson_GetSMSStatusOutput = async (
-  output: any
-): Promise<GetSMSStatusOutput> => {
+export const deserializeIngestkorea_restJson_GetSMSStatusOutput = async (output: any): Promise<GetSMSStatusOutput> => {
   return {
     requestId: output.requestId ? output.requestId : undefined,
     statusCode: output.statusCode ? output.statusCode : undefined,
     statusName: output.statusName ? output.statusName : undefined,
-    messages: output.messages
-      ? deserializeIngestkorea_restJson_SMSStatusMessage(output.messages)
-      : undefined,
+    messages: output.messages ? deserializeIngestkorea_restJson_SMSStatusMessage(output.messages) : undefined,
   };
 };
 
-export const deserializeIngestkorea_restJson_SMSStatusMessage = (
-  outputs: any[]
-): SMSStatusMessage[] => {
+export const deserializeIngestkorea_restJson_SMSStatusMessage = (outputs: any[]): SMSStatusMessage[] => {
   let result: SMSStatusMessage[] = outputs.map((output) => {
     return {
       messageId: output.messageId != undefined ? output.messageId : undefined,

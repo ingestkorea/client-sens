@@ -1,12 +1,12 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { GetAlimtalkTemplateOutput } from "../models/GetAlimtalkTemplate";
+import { GetAlimtalkTemplateOutput, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import {
   GetAlimtalkTemplateCommandInput,
   GetAlimtalkTemplateCommandOutput,
 } from "../commands/GetAlimtalkTemplateCommand";
 import { deserializeIngestkorea_restJson_AlimtalkTemplate } from "./ListAlimtalkTemplates";
-import { parseBody, parseErrorBody } from "./constants";
+import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
 
 export const serializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (
   input: GetAlimtalkTemplateCommandInput,
@@ -31,19 +31,24 @@ export const serializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (
-  output: HttpResponse
-): Promise<GetAlimtalkTemplateCommandOutput> => {
-  if (output.statusCode > 300) await parseErrorBody(output);
+export const deserializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (response: {
+  response: HttpResponse;
+  output: MetadataBearer;
+}): Promise<GetAlimtalkTemplateCommandOutput> => {
+  const { response: httpResponse, output } = response;
+  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
 
-  const data: any = await parseBody(output); // GetAlimtalkTemplateOutput
+  const data: any = await parseBody(httpResponse); // GetAlimtalkTemplateOutput
   let contents: any = {};
   contents = await deserializeIngestkorea_restJson_GetAlimtalkTemplateOutput(data);
 
-  const response: GetAlimtalkTemplateCommandOutput = {
+  return {
+    $metadata: {
+      ...deserializeMetadata(httpResponse),
+      ...output.$metadata,
+    },
     ...contents,
   };
-  return response;
 };
 
 export const deserializeIngestkorea_restJson_GetAlimtalkTemplateOutput = async (
