@@ -61,17 +61,19 @@ export const deserializeIngestkorea_restJson_SendMessageOutput = async (output: 
 };
 
 export const deserializeIngestkorea_restJson_ReceivedMessages = (outputs: any[]): ReceivedMessage[] => {
-  const result: ReceivedMessage[] = outputs.map((output) => {
-    return {
-      messageId: output.messageId != undefined ? output.messageId : undefined,
-      to: output.to != undefined ? output.to : undefined,
-      countryCode: output.countryCode != undefined ? output.countryCode : undefined,
-      content: output.content != undefined ? output.content : undefined,
-      requestStatusCode: output.requestStatusCode != undefined ? output.requestStatusCode : undefined,
-      requestStatusName: output.requestStatusName != undefined ? output.requestStatusName : undefined,
-      requestStatusDesc: output.requestStatusDesc != undefined ? output.requestStatusDesc : undefined,
-      useSmsFailover: output.useSmsFailover != undefined ? output.useSmsFailover : undefined,
-    };
-  });
+  const result: ReceivedMessage[] = outputs.map(parseReceivedMessage);
   return result;
+};
+
+export const parseReceivedMessage = (output: any): ReceivedMessage => {
+  return {
+    messageId: output.messageId != undefined ? output.messageId : undefined,
+    to: output.to != undefined ? output.to : undefined,
+    countryCode: output.countryCode != undefined ? output.countryCode : undefined,
+    content: output.content != undefined ? output.content : undefined,
+    requestStatusCode: output.requestStatusCode != undefined ? output.requestStatusCode : undefined,
+    requestStatusName: output.requestStatusName != undefined ? output.requestStatusName : undefined,
+    requestStatusDesc: output.requestStatusDesc != undefined ? output.requestStatusDesc : undefined,
+    useSmsFailover: output.useSmsFailover != undefined ? output.useSmsFailover : undefined,
+  };
 };

@@ -1,6 +1,6 @@
 {
   "name": "@ingestkorea/client-sens",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "INGESTKOREA SDK Naver Cloud Platform SENS Client for Node.js.",
   "main": "./dist-cjs/index.js",
   "module": "./dist-es/index.js",
@@ -28,10 +28,11 @@
   },
   "dependencies": {
     "@ingestkorea/util-error-handler": "^1.0.3",
-    "@ingestkorea/util-http-handler": "^1.0.0"
+    "@ingestkorea/util-http-handler": "^1.1.2"
   },
   "keywords": [
     "sens",
+    "kakao",
     "alimtalk",
     "sms",
     "push",

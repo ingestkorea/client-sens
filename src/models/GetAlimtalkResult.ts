@@ -4,7 +4,6 @@ export interface GetAlimtalkResultInput {
   messageId: string;
 }
 export interface GetAlimtalkResultOutput extends StatusMessage {
-  requestId?: string;
   failover?: Failover;
 }
 

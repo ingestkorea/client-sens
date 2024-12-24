@@ -8,7 +8,7 @@ export const middlewareIngestkoreaMetadata: BuildMiddleware = async (
   request: HttpRequest,
   config: SensClientResolvedConfig
 ) => {
-  request.headers["x-ingestkorea-user-agent"] = "@ingestkorea/client-sens/1.6.x";
+  request.headers["x-ingestkorea-user-agent"] = "@ingestkorea/client-sens/1.7.x";
   request.headers[REQUEST_HEADER] = "attempt=1";
   return request;
 };

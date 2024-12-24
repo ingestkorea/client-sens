@@ -32,11 +32,9 @@ export class SensClient {
   config: SensClientResolvedConfig;
   requestHandler: NodeHttpHandler;
   constructor(config: SensClientConfig) {
-    const resolvedCredentials = resolveCredentials(config);
-    const resolvedServiceId = resolveServiceId(config);
     this.config = {
-      credentials: { ...resolvedCredentials },
-      serviceId: { ...resolvedServiceId },
+      credentials: resolveCredentials(config),
+      serviceId: resolveServiceId(config),
     };
     this.requestHandler = new NodeHttpHandler({ connectionTimeout: 3000, socketTimeout: 3000 });
   }
@@ -66,13 +64,13 @@ const resolveCredentials = (config: SensClientConfig): Required<Credentials> => 
 
 const resolveServiceId = (config: SensClientConfig): ServiceId => {
   const { serviceId } = config;
-  if (!serviceId)
-    throw new IngestkoreaError({
-      code: 401,
-      type: "Unauthorized",
-      message: "Invalid Credentials",
-      description: "Invalid ServiceId",
-    });
+  const lastError = new IngestkoreaError({
+    code: 401,
+    type: "Unauthorized",
+    message: "Invalid Credentials",
+    description: "Invalid ServiceId",
+  });
+  if (!serviceId || !Object.keys(serviceId).length) throw lastError;
   return {
     push: serviceId.push != undefined ? serviceId.push : undefined,
     sms: serviceId.sms != undefined ? serviceId.sms : undefined,

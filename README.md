@@ -34,6 +34,7 @@ npm install @ingestkorea/client-sens
 - GetAlimtalkStatus
 - GetAlimtalkResult
 - GetAlimtalkTemplate
+- ListAlimtalkStatus
 - ListAlimtalkTemplates
 - ListAlimtalkChannels
 
@@ -47,15 +48,7 @@ npm install @ingestkorea/client-sens
 ### Import
 
 ```ts
-import {
-  SensClient,
-  SendAlimtalkCommand,
-  SendAlimtalkCommandInput,
-  SendSMSCommand,
-  SendSMSCommandInput,
-  SendMMSCommand,
-  SendMMSCommandInput,
-} from "@ingestkorea/client-sens";
+import { SensClient, SendAlimtalkCommand, SendSMSCommand, SendMMSCommand } from "@ingestkorea/client-sens";
 ```
 
 ### Usage
@@ -91,36 +84,54 @@ const client = new SensClient({
 #### SendAlimtalk
 
 ```ts
-let params: SendAlimtalkCommandInput = {
+let command = new SendAlimtalkCommand({
   plusFriendId: PLUS_FRIEND_ID,
   templateCode: TEMPLATE_CODE,
   messages: [{ to: "01012345678", content: CONTENT }],
-};
-let command = new SendAlimtalkCommand(params);
+});
+```
+
+#### ListAlimtalkStatus
+
+```ts
+let command = new ListAlimtalkStatusCommand({
+  plusFriendId: CHANNEL_ID,
+  requestStartTime: "yyyy-MM-ddTHH:mm:ss.SSS", // Optional(KST) // default: current - 24hours
+  requestEndTime: "yyyy-MM-ddTHH:mm:ss.SSS", // Optional(KST) // default: current
+});
+```
+
+#### GetAlimtalkStatus
+
+```ts
+let command = new GetAlimtalkStatusCommand({
+  requestId: REQUEST_ID,
+});
 ```
 
 #### SendSMS (SMS, LMS)
 
 ```ts
+let command = new SendSMSCommand({
+  from: '01012345678',
+  content: DEFAULT_CONTENT,
+  messages: [
+    { to: '0109182xxxx' },
+    { to: '0104321xxxx', content?: ONTENT_01 }
+    { to: '0108765xxxx', content?: CONTENT_02, subject?: SUBJECT_01 },
+  ]
+});
+
 /**
  * Automatically set message type('SMS' | 'LMS') according to content-length(euc-kr)
  * SMS: max 90bytes
  * LMS: max 2000bytes
  */
-let params: SendSMSCommandInput = {
-  from: '01012345678',
-  content: DEFAULT_CONTENT,
-  messages: [
-    { to: '0109182xxxx' },
-    { to: '0104321xxxx', content?: OPTIONAL_CONTENT_01 }
-    { to: '0108765xxxx', content?: OPTIONAL_CONTENT_02, subject?: OPTIONAL_SUBJECT_01 },
-  ]
-};
+
 /**
  * If you do not define the subject and content within the messages,
  * it is sent with the value specified as the default subject('제목없음') and content.
  */
-let command = new SendSMSCommand(params);
 ```
 
 #### SendMMS (MMS)
@@ -128,13 +139,13 @@ let command = new SendSMSCommand(params);
 ```ts
 import { readFileSync } from 'node:fs';
 
-let params: SendMMSCommandInput = {
+let command = new SendMMSCommand({
   from: '01012345678',
   content: DEFAULT_CONTENT,
   messages: [
     { to: '0109182xxxx' },
-    { to: '0104321xxxx', content?: OPTIONAL_CONTENT_01 }
-    { to: '0108765xxxx', content?: OPTIONAL_CONTENT_02, subject?: OPTIONAL_SUBJECT_01 },
+    { to: '0104321xxxx', content?: CONTENT_01 }
+    { to: '0108765xxxx', content?: CONTENT_02, subject?: SUBJECT_01 },
   ],
   files: [ // support jpg, jpeg
     { name: '/your/absolute/path/sample-image-1.jpg' },
@@ -143,12 +154,12 @@ let params: SendMMSCommandInput = {
       body?: readFileSync('/your/absolute/path/sample-image-2.jpg', { encoding: 'base64' })
     }
   ]
-};
+});
+
 /**
  * If you do not define the subject and content within the messages,
  * it is sent with the value specified as the default subject('제목없음') and content.
  */
-let command = new SendMMSCommand(params);
 ```
 
 #### Async/await

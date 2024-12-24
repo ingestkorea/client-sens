@@ -5,6 +5,7 @@ export * from "./SendAlimtalk";
 export * from "./GetAlimtalkStatus";
 export * from "./GetAlimtalkResult";
 export * from "./GetAlimtalkTemplate";
+export * from "./ListAlimtalkStatus";
 export * from "./ListAlimtalkTemplates";
 export * from "./ListAlimtalkChannels";
 export * from "./SendSMS";

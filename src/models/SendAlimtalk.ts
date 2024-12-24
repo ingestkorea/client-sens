@@ -14,14 +14,23 @@ export interface SendAlimtalkOutput {
 export interface AlimtalkMessage {
   to: string;
   content: string;
-  buttons?: Buttons[];
+  buttons?: TemplateButton[];
 }
-export interface Buttons {
-  type: string;
-  name: string;
-  linkMobile: string;
-  linkPc: string;
+
+export interface TemplateButton {
+  type: AlimtalkButtonType;
+  name: AlimtalkButtonName;
+  linkMobile?: string;
+  linkPc?: string;
+  schemeIos?: string;
+  schemeAndroid?: string;
 }
+
+const ALIMTALK_BUTTON_TYPES = ["DS", "WL", "AL", "BK", "MD", "AC"] as const;
+const ALIMTALK_BUTTON_NAMES = ["배송 조회", "웹 링크", "앱 링크", "봇 키워드", "메시지 전달", "채널 추가"] as const;
+
+export type AlimtalkButtonType = (typeof ALIMTALK_BUTTON_TYPES)[number];
+export type AlimtalkButtonName = (typeof ALIMTALK_BUTTON_NAMES)[number];
 
 export interface ReceivedMessage {
   messageId?: string;

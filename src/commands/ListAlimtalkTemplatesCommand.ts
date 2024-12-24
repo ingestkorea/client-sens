@@ -19,7 +19,7 @@ export class ListAlimtalkTemplatesCommand extends SensCommand<
   constructor(input: ListAlimtalkTemplatesCommandInput) {
     super(input);
     this.input = {
-      ...input,
+      channelId: input.channelId,
     };
   }
   async serialize(input: ListAlimtalkTemplatesCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {

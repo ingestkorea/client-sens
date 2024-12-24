@@ -19,7 +19,7 @@ export class GetAlimtalkStatusCommand extends SensCommand<
   constructor(input: GetAlimtalkStatusCommandInput) {
     super(input);
     this.input = {
-      ...input,
+      requestId: input.requestId,
     };
   }
   async serialize(input: GetAlimtalkStatusCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {

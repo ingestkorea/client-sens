@@ -2,7 +2,7 @@ import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
 import { GetAlimtalkStatusOutput, StatusMessage, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import { GetAlimtalkStatusCommandInput, GetAlimtalkStatusCommandOutput } from "../commands/GetAlimtalkStatusCommand";
-import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
+import { parseBody, parseErrorBody, deserializeMetadata, parseReceivedMessage } from "./";
 
 export const serializeIngestkorea_restJson_GetAlimtalkStatusCommand = async (
   input: GetAlimtalkStatusCommandInput,
@@ -33,7 +33,7 @@ export const deserializeIngestkorea_restJson_GetAlimtalkStatusCommand = async (r
   const { response: httpResponse, output } = response;
   if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
 
-  const data: any = await parseBody(httpResponse); // GetAlimtalkStatusOutput
+  const data: any = await parseBody(httpResponse);
   let contents: any = {};
   contents = await deserializeIngestkorea_restJson_GetAlimtalkStatusOutput(data);
 
@@ -49,35 +49,36 @@ export const deserializeIngestkorea_restJson_GetAlimtalkStatusCommand = async (r
 export const deserializeIngestkorea_restJson_GetAlimtalkStatusOutput = async (
   output: any
 ): Promise<GetAlimtalkStatusOutput> => {
-  const { requestId, statusCode, statusName, messages } = output;
   return {
-    requestId: requestId != undefined ? requestId : undefined,
-    statusCode: statusCode != undefined ? statusCode : undefined,
-    statusName: statusName != undefined ? statusName : undefined,
-    messages: messages != undefined ? deserializeIngestkorea_restJson_GetAlimtalkStatusMessages(messages) : undefined,
+    requestId: output.requestId != undefined ? output.requestId : undefined,
+    statusCode: output.statusCode != undefined ? output.statusCode : undefined,
+    statusName: output.statusName != undefined ? output.statusName : undefined,
+    messages:
+      output.messages != undefined
+        ? deserializeIngestkorea_restJson_GetAlimtalkStatusMessages(output.messages)
+        : undefined,
+    pageSize: output.pageSize != undefined ? output.pageSize : undefined,
+    pageIndex: output.pageIndex != undefined ? output.pageIndex : undefined,
+    itemCount: output.itemCount != undefined ? output.itemCount : undefined,
+    hasMore: output.hasMore != undefined ? output.hasMore : undefined,
   };
 };
 
 export const deserializeIngestkorea_restJson_GetAlimtalkStatusMessages = (outputs: any[]): StatusMessage[] => {
-  const result: StatusMessage[] = outputs.map((output) => {
-    return {
-      messageId: output.messageId != undefined ? output.messageId : undefined,
-      to: output.to != undefined ? output.to : undefined,
-      countryCode: output.countryCode != undefined ? output.countryCode : undefined,
-      content: output.content != undefined ? output.content : undefined,
-      requestStatusCode: output.requestStatusCode != undefined ? output.requestStatusCode : undefined,
-      requestStatusName: output.requestStatusName != undefined ? output.requestStatusName : undefined,
-      requestStatusDesc: output.requestStatusDesc != undefined ? output.requestStatusDesc : undefined,
-      useSmsFailover: output.useSmsFailover != undefined ? output.useSmsFailover : undefined,
-
-      requestTime: output.requestTime != undefined ? output.requestTime : undefined,
-      plusFriendId: output.plusFriendId != undefined ? output.plusFriendId : undefined,
-      templateCode: output.templateCode != undefined ? output.templateCode : undefined,
-      completeTime: output.completeTime != undefined ? output.completeTime : undefined,
-      messageStatusCode: output.messageStatusCode != undefined ? output.messageStatusCode : undefined,
-      messageStatusName: output.messageStatusName != undefined ? output.messageStatusName : undefined,
-      messageStatusDesc: output.messageStatusDesc != undefined ? output.messageStatusDesc : undefined,
-    };
-  });
+  const result: StatusMessage[] = outputs.map(parseStatusMessage);
   return result;
+};
+
+export const parseStatusMessage = (output: any): StatusMessage => {
+  return {
+    ...parseReceivedMessage(output),
+    requestId: output.requestId != undefined ? output.requestId : undefined,
+    requestTime: output.requestTime != undefined ? output.requestTime : undefined,
+    plusFriendId: output.plusFriendId != undefined ? output.plusFriendId : undefined,
+    templateCode: output.templateCode != undefined ? output.templateCode : undefined,
+    completeTime: output.completeTime != undefined ? output.completeTime : undefined,
+    messageStatusCode: output.messageStatusCode != undefined ? output.messageStatusCode : undefined,
+    messageStatusName: output.messageStatusName != undefined ? output.messageStatusName : undefined,
+    messageStatusDesc: output.messageStatusDesc != undefined ? output.messageStatusDesc : undefined,
+  };
 };

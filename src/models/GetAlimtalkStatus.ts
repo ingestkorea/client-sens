@@ -9,9 +9,14 @@ export interface GetAlimtalkStatusOutput {
   statusCode?: string;
   statusName?: string;
   messages?: StatusMessage[];
+  pageSize?: number;
+  pageIndex?: number;
+  itemCount?: number;
+  hasMore?: boolean;
 }
 
 export interface StatusMessage extends ReceivedMessage {
+  requestId?: string;
   requestTime?: string;
   plusFriendId?: string;
   templateCode?: string;

@@ -1,5 +1,5 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { ListAlimtalkTemplatesOutput, Template, Comment, Button, MetadataBearer } from "../models";
+import { ListAlimtalkTemplatesOutput, Template, MetadataBearer } from "../models";
 import { SensClientResolvedConfig } from "../SensClient";
 import {
   ListAlimtalkTemplatesCommandInput,
@@ -50,61 +50,24 @@ export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = asyn
 };
 
 export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesOutput = async (
-  output: any
+  output: any[]
 ): Promise<ListAlimtalkTemplatesOutput> => {
   return {
-    templates: deserializeIngestkorea_restJson_AlimtalkTemplate(output),
+    templates: deserializeIngestkorea_restJson_AlimtalkTemplates(output),
   };
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplate = (outputs: any[]): Template[] => {
-  let result = outputs.map((output) => {
-    return {
-      createTime: output.createTime != undefined ? output.createTime : undefined,
-      updateTime: output.updateTime != undefined ? output.updateTime : undefined,
-      channelId: output.channelId != undefined ? output.channelId : undefined,
-      templateCode: output.templateCode != undefined ? output.templateCode : undefined,
-      templateName: output.templateName != undefined ? output.templateName : undefined,
-      content: output.content != undefined ? output.content : undefined,
-      comments:
-        output.comments != undefined
-          ? deserializeIngestkorea_restJson_AlimtalkTemplateComment(output.comments)
-          : undefined,
-      templateInspectionStatus:
-        output.templateInspectionStatus != undefined ? output.templateInspectionStatus : undefined,
-      templateStatus: output.templateStatus != undefined ? output.templateStatus : undefined,
-      buttons:
-        output.buttons != undefined
-          ? deserializeIngestkorea_restJson_AlimtalkTemplateButton(output.buttons)
-          : undefined,
-    };
-  });
+export const deserializeIngestkorea_restJson_AlimtalkTemplates = (outputs: any[]): Template[] => {
+  let result = outputs.map(parseTemplate);
   return result;
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplateComment = (outputs: any[]): Comment[] => {
-  let result = outputs.map((output) => {
-    return {
-      commentId: output.commentId != undefined ? output.commentId : undefined,
-      content: output.content != undefined ? output.content : undefined,
-      status: output.status != undefined ? output.status : undefined,
-      createTime: output.createTime != undefined ? output.createTime : undefined,
-    };
-  });
-  return result;
-};
-
-export const deserializeIngestkorea_restJson_AlimtalkTemplateButton = (outputs: any[]): Button[] => {
-  let result = outputs.map((output) => {
-    return {
-      order: output.order != undefined ? output.order : undefined,
-      type: output.type != undefined ? output.type : undefined,
-      name: output.name != undefined ? output.name : undefined,
-      linkMobile: output.linkMobile != undefined ? output.linkMobile : undefined,
-      linkPc: output.linkPc != undefined ? output.linkPc : undefined,
-      schemeIos: output.schemeIos != undefined ? output.schemeIos : undefined,
-      schemeAndroid: output.schemeAndroid != undefined ? output.schemeAndroid : undefined,
-    };
-  });
-  return result;
+export const parseTemplate = (output: any): Template => {
+  return {
+    createTime: output.createTime != undefined ? output.createTime : undefined,
+    updateTime: output.updateTime != undefined ? output.updateTime : undefined,
+    channelId: output.channelId != undefined ? output.channelId : undefined,
+    templateCode: output.templateCode != undefined ? output.templateCode : undefined,
+    templateName: output.templateName != undefined ? output.templateName : undefined,
+  };
 };

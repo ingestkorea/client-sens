@@ -22,7 +22,7 @@ export class SendAlimtalkCommand extends SensCommand<
       ...input,
       plusFriendId: input.plusFriendId,
       templateCode: input.templateCode,
-      messages: input.messages.map(resolveAlimtalkMessage),
+      messages: resolveAlimtalkMessage(input.messages),
     };
   }
   async serialize(input: SendAlimtalkCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
@@ -42,19 +42,21 @@ export class SendAlimtalkCommand extends SensCommand<
   }
 }
 
-const resolveAlimtalkMessage = (message: AlimtalkMessage): AlimtalkMessage => {
+const resolveAlimtalkMessage = (messages: AlimtalkMessage[]): AlimtalkMessage[] => {
   const ALIMTALK_MAX = 1000;
-  if (message.content.length > ALIMTALK_MAX)
-    throw new IngestkoreaError({
-      code: 400,
-      type: "Bad Request",
-      message: "Invalid Params",
-      description: `Maximum message length is ${ALIMTALK_MAX}`,
-    });
-
-  return {
-    to: message.to.replace(/\-/gi, ""),
-    content: message.content,
-    ...(message.buttons != undefined && { buttons: message.buttons }),
-  };
+  const lastError = new IngestkoreaError({
+    code: 400,
+    type: "Bad Request",
+    message: "Invalid Params",
+    description: `Maximum message length is ${ALIMTALK_MAX}`,
+  });
+  const result: AlimtalkMessage[] = messages.map((message) => {
+    if (message.content.length > ALIMTALK_MAX) throw lastError;
+    return {
+      to: message.to.replace(/\-/gi, ""),
+      content: message.content,
+      ...(message.buttons && message.buttons.length && { buttons: message.buttons }),
+    };
+  });
+  return result;
 };

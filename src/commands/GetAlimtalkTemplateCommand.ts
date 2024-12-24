@@ -19,7 +19,8 @@ export class GetAlimtalkTemplateCommand extends SensCommand<
   constructor(input: GetAlimtalkTemplateCommandInput) {
     super(input);
     this.input = {
-      ...input,
+      channelId: input.channelId,
+      templateCode: input.templateCode,
     };
   }
   async serialize(input: GetAlimtalkTemplateCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
