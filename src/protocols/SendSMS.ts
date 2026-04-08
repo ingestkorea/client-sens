@@ -1,59 +1,46 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SendSMSOutput, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
-import { SendSMSCommandInput, SendSMSCommandOutput } from "../commands/SendSMSCommand";
-import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
+import { HttpRequest } from "@ingestkorea/util-http-handler";
+import { SensClientResolvedConfig, RequestSerializer, ResponseDeserializer, SendSMSResult } from "../models/index.js";
+import { SendSMSCommandInput, SendSMSCommandOutput } from "../commands/SendSMSCommand.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
 
-export const serializeIngestkorea_restJson_SendSMSCommand = async (
-  input: SendSMSCommandInput,
-  config: SensClientResolvedConfig
-): Promise<HttpRequest> => {
+export const se_SendSMSCommand: RequestSerializer<SendSMSCommandInput, SensClientResolvedConfig> = async (
+  input,
+  config
+) => {
   const hostname = "sens.apigw.ntruss.com";
   const path = "/sms/v2/services/" + config.serviceId.sms + "/messages";
   const headers = {
     "content-type": "application/json; charset=utf-8",
     host: hostname,
   };
-  const body = JSON.stringify({
-    from: input.from,
-    content: input.content,
-    messages: input.messages,
-    type: input.type != undefined ? input.type : "SMS",
-    ...(input.contentType != undefined && { contentType: input.contentType }),
-    ...(input.countryCode != undefined && { countryCode: input.countryCode }),
-    ...(input.subject != undefined && input.type === "LMS" && { subject: input.subject }),
-  });
+  const body = JSON.stringify({ ...input });
+
   return new HttpRequest({
     protocol: "https:",
     method: "POST",
-    hostname: hostname,
-    path: path,
-    headers: headers,
-    body: body,
+    hostname,
+    path,
+    headers,
+    body,
   });
 };
 
-export const deserializeIngestkorea_restJson_SendSMSCommand = async (response: {
-  response: HttpResponse;
-  output: MetadataBearer;
-}): Promise<SendSMSCommandOutput> => {
-  const { response: httpResponse, output } = response;
-  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
+export const de_SendSMSCommand: ResponseDeserializer<SendSMSCommandOutput, SensClientResolvedConfig> = async (
+  response,
+  config
+) => {
+  if (response.statusCode >= 300) await parseErrorBody(response);
 
-  const data: any = await parseBody(httpResponse); // SendSMSOutput
-  let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_SendSMSOutput(data);
+  const data = await parseBody(response);
+  const contents = de_SendSMSResult(data);
 
   return {
-    $metadata: {
-      ...deserializeMetadata(httpResponse),
-      ...output.$metadata,
-    },
-    ...contents,
+    $metadata: deserializeMetadata(response),
+    ...compact(contents),
   };
 };
 
-export const deserializeIngestkorea_restJson_SendSMSOutput = async (output: any): Promise<SendSMSOutput> => {
+export const de_SendSMSResult = (output: any): SendSMSResult => {
   return {
     requestId: output.requestId ? output.requestId : undefined,
     requestTime: output.requestTime ? output.requestTime : undefined,

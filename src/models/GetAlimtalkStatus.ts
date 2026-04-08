@@ -1,21 +1,24 @@
-import { ReceivedMessage } from "./SendAlimtalk";
+import { AlimtalkMessageRequestStatus } from "./SendAlimtalk.js";
 
-export interface GetAlimtalkStatusInput {
+export interface GetAlimtalkStatusRequest {
   requestId: string;
+  pageSize?: number;
+  nextToken?: string;
 }
 
-export interface GetAlimtalkStatusOutput {
+export interface GetAlimtalkStatusResult {
   requestId?: string;
   statusCode?: string;
   statusName?: string;
-  messages?: StatusMessage[];
+  messages?: AlimtalkMessageStatus[];
   pageSize?: number;
   pageIndex?: number;
   itemCount?: number;
   hasMore?: boolean;
+  nextToken?: string;
 }
 
-export interface StatusMessage extends ReceivedMessage {
+export interface AlimtalkMessageStatus extends AlimtalkMessageRequestStatus {
   requestId?: string;
   requestTime?: string;
   plusFriendId?: string;

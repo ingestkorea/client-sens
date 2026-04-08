@@ -1,97 +1,94 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SensCommand, SendSMSInput, SendSMSOutput, MessageType, SMSMessage, SendFile, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
 import {
-  serializeIngestkorea_restJson_SendSMSCommand,
-  deserializeIngestkorea_restJson_SendSMSCommand,
-} from "../protocols/SendSMS";
-import { IngestkoreaError } from "@ingestkorea/util-error-handler";
-import { SMS_MAX, LMS_MAX, trimText, prettyPhoneNum, getContentLength } from "./constants";
+  SensClientResolvedConfig,
+  SensCommand,
+  SendSMSRequest,
+  SendSMSResult,
+  MetadataBearer,
+  RequestSerializer,
+  ResponseDeserializer,
+  SMSMessage,
+  MessageType,
+  SensError,
+} from "../models/index.js";
+import { se_SendSMSCommand, de_SendSMSCommand } from "../protocols/SendSMS.js";
+import { trimText, prettyPhoneNum, getContentLength } from "./constants";
 
-export interface SendSMSCommandInput extends SendSMSInput {}
-export interface SendSMSCommandOutput extends SendSMSOutput, MetadataBearer {}
+export interface SendSMSCommandInput extends SendSMSRequest {}
+export interface SendSMSCommandOutput extends MetadataBearer, SendSMSResult {}
 
 export class SendSMSCommand extends SensCommand<SendSMSCommandInput, SendSMSCommandOutput, SensClientResolvedConfig> {
   input: SendSMSCommandInput;
+  serializer: RequestSerializer<SendSMSCommandInput, SensClientResolvedConfig>;
+  deserializer: ResponseDeserializer<SendSMSCommandOutput, SensClientResolvedConfig>;
   constructor(input: SendSMSCommandInput) {
     super(input);
-    const { content, messageType: defaultMessageType } = resolveInputContent(input.content);
-    const { messages, messageType: childMessageType } = resolveInputMessages(input.messages);
+
+    const content = input.content ? trimText(input.content) : "내용없음";
+    const subject = input.subject ? trimText(input.subject) : "제목없음";
+
+    const messages = resolveInputMessages(input.messages, { defaultContent: content, defaultSubject: subject });
+
+    const isLMS = !!messages.filter((msg) => !!msg.subject).length;
 
     this.input = {
-      ...input,
       from: prettyPhoneNum(input.from),
-      content: content,
-      type: defaultMessageType === childMessageType ? defaultMessageType : "LMS",
-      messages: messages,
+      content,
+      messages,
+      type: isLMS ? "LMS" : "SMS",
+      contentType: input.contentType ? input.contentType : "COMM",
+      countryCode: input.countryCode ? input.countryCode : "82",
+      ...(isLMS && { subject }),
     };
-  }
-  async serialize(input: SendSMSCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
-    if (!config.serviceId.sms)
-      throw new IngestkoreaError({
-        code: 400,
-        type: "Bad Request",
-        message: "Invalid Params",
-        description: "Please Check SMS ServiceId",
-      });
-    let request = await serializeIngestkorea_restJson_SendSMSCommand(input, config);
-    return request;
-  }
-  async deserialize(response: { response: HttpResponse; output: MetadataBearer }): Promise<SendSMSCommandOutput> {
-    let output = await deserializeIngestkorea_restJson_SendSMSCommand(response);
-    return output;
+    this.serializer = se_SendSMSCommand;
+    this.deserializer = de_SendSMSCommand;
   }
 }
 
-const getMessageType = (input: string): MessageType => {
-  const contentLength = getContentLength(input);
-  if (!contentLength)
-    throw new IngestkoreaError({
-      code: 400,
-      type: "Bad Request",
-      message: "Invalid Request",
-      description: `Please check input message`,
-    });
-  if (contentLength > LMS_MAX)
-    throw new IngestkoreaError({
-      code: 400,
-      type: "Bad Request",
-      message: "Invalid Request",
-      description: `Maximum message length is ${LMS_MAX}bytes`,
-    });
-  return contentLength > SMS_MAX ? "LMS" : "SMS";
-};
+export const resolveInputMessages = (
+  messages: SMSMessage[],
+  config: { defaultContent: string; defaultSubject: string }
+): SMSMessage[] => {
+  const output: SMSMessage[] = messages
+    .filter((d) => !!d)
+    .map((message) => {
+      const content = message.content ? trimText(message.content) : config.defaultContent;
+      const subject = message.subject ? trimText(message.subject) : config.defaultSubject;
 
-const resolveInputContent = (content: string): { content: string; messageType: MessageType } => {
-  const resolvedContent = trimText(content);
-  const messageType = getMessageType(resolvedContent);
-  return {
-    content: resolvedContent,
-    messageType: messageType,
-  };
-};
+      const msgType = getMessageType({ content });
 
-const resolveInputMessages = (messages: SMSMessage[]): { messages: SMSMessage[]; messageType: MessageType } => {
-  let init: { messages: SMSMessage[]; messageType: MessageType } = {
-    messages: [],
-    messageType: "SMS",
-  };
-
-  const output = messages.reduce((acc, message) => {
-    const to = prettyPhoneNum(message.to);
-    const content = message.content != undefined ? trimText(message.content) : undefined;
-    const subject = message.subject != undefined ? trimText(message.subject) : undefined;
-
-    const messageType: MessageType = content != undefined ? getMessageType(content) : "SMS";
-
-    if (messageType == "LMS") acc.messageType = messageType;
-    acc.messages.push({
-      to: to,
-      ...(content != undefined && { content: content }),
-      ...(subject != undefined && acc.messageType === "LMS" && { subject: subject }),
+      return {
+        to: prettyPhoneNum(message.to),
+        content,
+        ...(msgType === "LMS" && { subject }),
+      };
     });
 
-    return acc;
-  }, init);
   return output;
+};
+
+const getMessageType = (input: { content: string }): MessageType => {
+  const SMS_MAX_CONTENT_LENGTH = 90;
+  const LMS_MAX_CONTENT_LENGTH = 2000;
+
+  const contentLength = getContentLength(input.content);
+
+  if (!contentLength) {
+    throw new SensError({
+      code: 400,
+      type: "Bad Request",
+      message: "메세지 내용이 없습니다.",
+      invalidInputs: [{ type: "not-valid.args", message: "메세지 내용을 확인해주세요." }],
+    });
+  }
+
+  if (contentLength > LMS_MAX_CONTENT_LENGTH) {
+    throw new SensError({
+      code: 400,
+      type: "Bad Request",
+      message: "메세지 최대 크기 초과",
+      invalidInputs: [{ type: "not-valid.args", message: `메세지 최대 길이는 ${LMS_MAX_CONTENT_LENGTH}글자입니다` }],
+    });
+  }
+
+  return contentLength > SMS_MAX_CONTENT_LENGTH ? "LMS" : "SMS";
 };

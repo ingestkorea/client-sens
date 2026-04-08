@@ -1,16 +1,32 @@
 {
   "name": "@ingestkorea/client-sens",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "INGESTKOREA SDK Naver Cloud Platform SENS Client for Node.js.",
+  "exports": {
+    ".": {
+      "import": "./dist-es/index.js",
+      "require": "./dist-cjs/index.js",
+      "types": "./dist-types/index.d.ts"
+    }
+  },
   "main": "./dist-cjs/index.js",
   "module": "./dist-es/index.js",
   "types": "./dist-types/index.d.ts",
+  "files": [
+    "dist-cjs",
+    "dist-es",
+    "dist-types",
+    "!dist-cjs/test/**",
+    "!dist-es/test/**",
+    "!dist-types/test/**"
+  ],
   "scripts": {
     "build": "npm run clean && npm run build:cjs && npm run build:es && npm run build:types",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:es": "tsc -p tsconfig.es.json",
     "build:types": "tsc -p tsconfig.types.json",
-    "clean": "rm -rf ./dist-*"
+    "clean": "rm -rf dist-*",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -23,8 +39,8 @@
   },
   "homepage": "https://github.com/ingestkorea/client-sens#readme",
   "devDependencies": {
-    "@types/node": "^18.11.0",
-    "typescript": "^5.5.3"
+    "@types/node": "^22",
+    "typescript": "^5"
   },
   "dependencies": {
     "@ingestkorea/util-error-handler": "^1.0.3",

@@ -1,14 +1,20 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SensCommand, SendAlimtalkInput, SendAlimtalkOutput, AlimtalkMessage, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
 import {
-  serializeIngestkorea_restJson_SendAlimtalkCommand,
-  deserializeIngestkorea_restJson_SendAlimtalkCommand,
-} from "../protocols/SendAlimtalk";
-import { IngestkoreaError } from "@ingestkorea/util-error-handler";
+  SensClientResolvedConfig,
+  SensCommand,
+  SendAlimtalkRequest,
+  SendAlimtalkResult,
+  ALIMTALK_MAX_RECIPIENTS,
+  ALIMTALK_MAX_CONTENT_LENGTH,
+  MetadataBearer,
+  RequestSerializer,
+  ResponseDeserializer,
+  AlimtalkMessage,
+  SensError,
+} from "../models/index.js";
+import { se_SendAlimtalkCommand, de_SendAlimtalkCommand } from "../protocols/SendAlimtalk.js";
 
-export interface SendAlimtalkCommandInput extends SendAlimtalkInput {}
-export interface SendAlimtalkCommandOutput extends SendAlimtalkOutput, MetadataBearer {}
+export interface SendAlimtalkCommandInput extends SendAlimtalkRequest {}
+export interface SendAlimtalkCommandOutput extends MetadataBearer, SendAlimtalkResult {}
 
 export class SendAlimtalkCommand extends SensCommand<
   SendAlimtalkCommandInput,
@@ -16,47 +22,57 @@ export class SendAlimtalkCommand extends SensCommand<
   SensClientResolvedConfig
 > {
   input: SendAlimtalkCommandInput;
+  serializer: RequestSerializer<SendAlimtalkCommandInput, SensClientResolvedConfig>;
+  deserializer: ResponseDeserializer<SendAlimtalkCommandOutput, SensClientResolvedConfig>;
   constructor(input: SendAlimtalkCommandInput) {
     super(input);
     this.input = {
-      ...input,
       plusFriendId: input.plusFriendId,
       templateCode: input.templateCode,
-      messages: resolveAlimtalkMessage(input.messages),
+      messages: resolveAlimtalkMessages(input.messages, {
+        maxRecipients: ALIMTALK_MAX_RECIPIENTS,
+        maxContentLength: ALIMTALK_MAX_CONTENT_LENGTH,
+      }),
     };
-  }
-  async serialize(input: SendAlimtalkCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
-    if (!config.serviceId.kakao)
-      throw new IngestkoreaError({
-        code: 400,
-        type: "Bad Request",
-        message: "Invalid Params",
-        description: "Please Check Kakao ServiceId",
-      });
-    let request = await serializeIngestkorea_restJson_SendAlimtalkCommand(input, config);
-    return request;
-  }
-  async deserialize(response: { response: HttpResponse; output: MetadataBearer }): Promise<SendAlimtalkCommandOutput> {
-    let output = await deserializeIngestkorea_restJson_SendAlimtalkCommand(response);
-    return output;
+    this.serializer = se_SendAlimtalkCommand;
+    this.deserializer = de_SendAlimtalkCommand;
   }
 }
 
-const resolveAlimtalkMessage = (messages: AlimtalkMessage[]): AlimtalkMessage[] => {
-  const ALIMTALK_MAX = 1000;
-  const lastError = new IngestkoreaError({
-    code: 400,
-    type: "Bad Request",
-    message: "Invalid Params",
-    description: `Maximum message length is ${ALIMTALK_MAX}`,
-  });
+const resolveAlimtalkMessages = (
+  messages: AlimtalkMessage[],
+  config: { maxRecipients: number; maxContentLength: number }
+): AlimtalkMessage[] => {
+  if (!messages.length || messages.length > config.maxRecipients) {
+    throw new SensError({
+      code: 400,
+      type: "Bad Request",
+      message: "알림톡 동시 발송 범위 오류",
+      invalidInputs: [
+        {
+          type: "not-valid.args",
+          message: `메세지 동시 발송은 최소 1명, 최대 ${config.maxRecipients}명까지 가능합니다.`,
+        },
+      ],
+    });
+  }
+
   const result: AlimtalkMessage[] = messages.map((message) => {
-    if (message.content.length > ALIMTALK_MAX) throw lastError;
+    if (message.content.length > config.maxContentLength) {
+      throw new SensError({
+        code: 400,
+        type: "Bad Request",
+        message: "알림톡 최대 길이 초과",
+        invalidInputs: [{ type: "not-valid.args", message: `메세지 최대 길이는 ${config.maxContentLength}글자입니다` }],
+      });
+    }
+
     return {
       to: message.to.replace(/\-/gi, ""),
       content: message.content,
       ...(message.buttons && message.buttons.length && { buttons: message.buttons }),
     };
   });
+
   return result;
 };

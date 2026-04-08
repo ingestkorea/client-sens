@@ -1,15 +1,15 @@
-export interface GetSMSStatusInput {
+export interface GetSMSStatusRequest {
   requestId: string;
 }
 
-export interface GetSMSStatusOutput {
+export interface GetSMSStatusResult {
   requestId?: string;
   statusCode?: string;
   statusName?: string;
-  messages?: SMSStatusMessage[];
+  messages?: SMSMessageRequestStatus[];
 }
 
-export interface SMSStatusMessage {
+export interface SMSMessageRequestStatus {
   messageId?: string;
   requestTime?: string;
   contentType?: string;

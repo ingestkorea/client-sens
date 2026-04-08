@@ -1,13 +1,18 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { GetSMSStatusOutput, SMSStatusMessage, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
-import { GetSMSStatusCommandInput, GetSMSStatusCommandOutput } from "../commands/GetSMSStatusCommand";
-import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
+import { HttpRequest } from "@ingestkorea/util-http-handler";
+import {
+  SensClientResolvedConfig,
+  RequestSerializer,
+  ResponseDeserializer,
+  GetSMSStatusResult,
+  SMSMessageRequestStatus,
+} from "../models/index.js";
+import { GetSMSStatusCommandInput, GetSMSStatusCommandOutput } from "../commands/GetSMSStatusCommand.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
 
-export const serializeIngestkorea_restJson_GetSMSStatusCommand = async (
-  input: GetSMSStatusCommandInput,
-  config: SensClientResolvedConfig
-): Promise<HttpRequest> => {
+export const se_GetSMSStatusCommand: RequestSerializer<GetSMSStatusCommandInput, SensClientResolvedConfig> = async (
+  input,
+  config
+) => {
   const hostname = "sens.apigw.ntruss.com";
   const path = "/sms/v2/services/" + config.serviceId.sms + "/messages";
   const headers = {
@@ -16,55 +21,52 @@ export const serializeIngestkorea_restJson_GetSMSStatusCommand = async (
   const query = {
     requestId: input.requestId,
   };
+
   return new HttpRequest({
     protocol: "https:",
     method: "GET",
-    hostname: hostname,
-    path: path,
-    query: query,
-    headers: headers,
+    hostname,
+    path,
+    query,
+    headers,
   });
 };
 
-export const deserializeIngestkorea_restJson_GetSMSStatusCommand = async (response: {
-  response: HttpResponse;
-  output: MetadataBearer;
-}): Promise<GetSMSStatusCommandOutput> => {
-  const { response: httpResponse, output } = response;
-  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
+export const de_GetSMSStatusCommand: ResponseDeserializer<GetSMSStatusCommandOutput, SensClientResolvedConfig> = async (
+  response,
+  config
+) => {
+  if (response.statusCode >= 300) await parseErrorBody(response);
 
-  const data: any = await parseBody(httpResponse);
-  let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_GetSMSStatusOutput(data);
+  const data = await parseBody(response);
+  const contents = de_GetSMSStatusResult(data);
 
   return {
-    $metadata: {
-      ...deserializeMetadata(httpResponse),
-      ...output.$metadata,
-    },
-    ...contents,
+    $metadata: deserializeMetadata(response),
+    ...compact(contents),
   };
 };
 
-export const deserializeIngestkorea_restJson_GetSMSStatusOutput = async (output: any): Promise<GetSMSStatusOutput> => {
+const de_GetSMSStatusResult = (output: any): GetSMSStatusResult => {
   return {
     requestId: output.requestId ? output.requestId : undefined,
     statusCode: output.statusCode ? output.statusCode : undefined,
     statusName: output.statusName ? output.statusName : undefined,
-    messages: output.messages ? deserializeIngestkorea_restJson_SMSStatusMessage(output.messages) : undefined,
+    messages: output.messages ? de_SMSMessageRequestStatusList(output.messages) : [],
   };
 };
 
-export const deserializeIngestkorea_restJson_SMSStatusMessage = (outputs: any[]): SMSStatusMessage[] => {
-  let result: SMSStatusMessage[] = outputs.map((output) => {
-    return {
-      messageId: output.messageId != undefined ? output.messageId : undefined,
-      requestTime: output.requestTime != undefined ? output.requestTime : undefined,
-      contentType: output.contentType != undefined ? output.contentType : undefined,
-      countryCode: output.countryCode != undefined ? output.countryCode : undefined,
-      from: output.from != undefined ? output.from : undefined,
-      to: output.to != undefined ? output.to : undefined,
-    };
-  });
-  return result;
+const de_SMSMessageRequestStatusList = (output: any[]): SMSMessageRequestStatus[] => {
+  return (output || []).filter((e) => e != null).map((entry) => de_SMSMessageRequestStatus(entry));
+};
+
+export const de_SMSMessageRequestStatus = (output: any): SMSMessageRequestStatus => {
+  return {
+    messageId: output.messageId != undefined ? output.messageId : undefined,
+    requestTime: output.requestTime != undefined ? output.requestTime : undefined,
+    contentType: output.contentType != undefined ? output.contentType : undefined,
+    countryCode: output.countryCode != undefined ? output.countryCode : undefined,
+    from: output.from != undefined ? output.from : undefined,
+    to: output.to != undefined ? output.to : undefined,
+  };
 };

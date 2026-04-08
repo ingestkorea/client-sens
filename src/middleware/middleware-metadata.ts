@@ -1,14 +1,11 @@
-import { HttpRequest } from "@ingestkorea/util-http-handler";
-import { SensClientResolvedConfig } from "../SensClient";
-import { BuildMiddleware } from "../models";
+import { Middleware } from "../models/index.js";
+import { INGESTKOREA_USER_AGENT } from "./constants.js";
 
-const REQUEST_HEADER = "x-ingestkorea-request";
+export const middlewareIngestkoreaMetadata: Middleware = (next) => async (input, context) => {
+  input.request.headers = {
+    ...input.request.headers,
+    [INGESTKOREA_USER_AGENT]: "@ingestkorea/client-sens/1.8.x",
+  };
 
-export const middlewareIngestkoreaMetadata: BuildMiddleware = async (
-  request: HttpRequest,
-  config: SensClientResolvedConfig
-) => {
-  request.headers["x-ingestkorea-user-agent"] = "@ingestkorea/client-sens/1.7.x";
-  request.headers[REQUEST_HEADER] = "attempt=1";
-  return request;
+  return next(input, context);
 };

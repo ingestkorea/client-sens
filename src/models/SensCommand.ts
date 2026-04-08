@@ -1,11 +1,13 @@
 import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { MetadataBearer } from "./MetadataBearer";
+
+export type RequestSerializer<InputType, Config> = (input: InputType, config: Config) => Promise<HttpRequest>;
+export type ResponseDeserializer<OutputType, Config> = (response: HttpResponse, config: Config) => Promise<OutputType>;
 
 export abstract class SensCommand<ClientInput, ClientOutput, ClientResolvedConfig> {
   input: ClientInput;
   constructor(input: ClientInput) {
     this.input = input;
   }
-  abstract serialize(input: ClientInput, config: ClientResolvedConfig): Promise<HttpRequest>;
-  abstract deserialize(output: { response: HttpResponse; output: MetadataBearer }): Promise<ClientOutput>;
+  abstract serializer: RequestSerializer<ClientInput, ClientResolvedConfig>;
+  abstract deserializer: ResponseDeserializer<ClientOutput, ClientResolvedConfig>;
 }

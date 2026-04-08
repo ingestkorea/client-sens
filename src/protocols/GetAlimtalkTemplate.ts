@@ -1,23 +1,25 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
+import { HttpRequest } from "@ingestkorea/util-http-handler";
 import {
-  GetAlimtalkTemplateOutput,
+  SensClientResolvedConfig,
+  RequestSerializer,
+  ResponseDeserializer,
+  GetAlimtalkTemplateResult,
   TemplateDetail,
   Comment,
   Attachment,
-  TemplateButtons,
-  MetadataBearer,
-} from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
+  TemplateButtonExtend,
+} from "../models/index.js";
 import {
   GetAlimtalkTemplateCommandInput,
   GetAlimtalkTemplateCommandOutput,
-} from "../commands/GetAlimtalkTemplateCommand";
-import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
+} from "../commands/GetAlimtalkTemplateCommand.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
+import { de_Template } from "./ListAlimtalkTemplates.js";
 
-export const serializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (
-  input: GetAlimtalkTemplateCommandInput,
-  config: SensClientResolvedConfig
-): Promise<HttpRequest> => {
+export const se_GetAlimtalkTemplateCommand: RequestSerializer<
+  GetAlimtalkTemplateCommandInput,
+  SensClientResolvedConfig
+> = async (input, config) => {
   const hostname = "sens.apigw.ntruss.com";
   const path = "/alimtalk/v2/services/" + config.serviceId.kakao + "/templates";
   const headers = {
@@ -27,117 +29,102 @@ export const serializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (
     channelId: input.channelId,
     templateCode: input.templateCode,
   };
+
   return new HttpRequest({
     protocol: "https:",
     method: "GET",
-    hostname: hostname,
-    path: path,
-    query: query,
-    headers: headers,
+    hostname,
+    path,
+    query,
+    headers,
   });
 };
 
-export const deserializeIngestkorea_restJson_GetAlimtalkTemplateCommand = async (response: {
-  response: HttpResponse;
-  output: MetadataBearer;
-}): Promise<GetAlimtalkTemplateCommandOutput> => {
-  const { response: httpResponse, output } = response;
-  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
+export const de_GetAlimtalkTemplateCommand: ResponseDeserializer<
+  GetAlimtalkTemplateCommandOutput,
+  SensClientResolvedConfig
+> = async (response, config) => {
+  if (response.statusCode >= 300) await parseErrorBody(response);
 
-  const data: any = await parseBody(httpResponse); // GetAlimtalkTemplateOutput
-  let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_GetAlimtalkTemplateOutput(data);
+  const data = await parseBody(response);
+  const contents = de_GetAlimtalkTemplateResult(data);
 
   return {
-    $metadata: {
-      ...deserializeMetadata(httpResponse),
-      ...output.$metadata,
-    },
-    ...contents,
+    $metadata: deserializeMetadata(response),
+    ...compact(contents),
   };
 };
 
-export const deserializeIngestkorea_restJson_GetAlimtalkTemplateOutput = async (
-  output: any[]
-): Promise<GetAlimtalkTemplateOutput> => {
+const de_GetAlimtalkTemplateResult = (output: any[]): GetAlimtalkTemplateResult => {
   return {
-    templates: deserializeIngestkorea_restJson_AlimtalkTemplateDetail(output),
+    templates: Array.isArray(output) ? de_TemplateDetailList(output) : [],
   };
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplateDetail = (outputs: any[]): TemplateDetail[] => {
-  let result = outputs.map((output) => {
-    return {
-      createTime: output.createTime != undefined ? output.createTime : undefined,
-      updateTime: output.updateTime != undefined ? output.updateTime : undefined,
-      channelId: output.channelId != undefined ? output.channelId : undefined,
-      templateCode: output.templateCode != undefined ? output.templateCode : undefined,
-      templateName: output.templateName != undefined ? output.templateName : undefined,
-      categoryCode: output.categoryCode != undefined ? output.categoryCode : undefined,
-      categoryName: output.categoryName != undefined ? output.categoryName : undefined,
-      messageType: output.messageType != undefined ? output.messageType : undefined,
-      emphasizeType: output.emphasizeType != undefined ? output.emphasizeType : undefined,
-      content: output.content != undefined ? output.content : undefined,
-      adContent: output.adContent != undefined ? output.adContent : undefined,
-      extraContent: output.extraContent != undefined ? output.extraContent : undefined,
-      title: output.title != undefined ? output.title : undefined,
-      additionalTitle: output.additionalTitle != undefined ? output.additionalTitle : undefined,
-      comments:
-        output.comments != undefined
-          ? deserializeIngestkorea_restJson_AlimtalkTemplateComment(output.comments)
-          : undefined,
-      templateInspectionStatus:
-        output.templateInspectionStatus != undefined ? output.templateInspectionStatus : undefined,
-      templateStatus: output.templateStatus != undefined ? output.templateStatus : undefined,
-      buttons:
-        output.buttons != undefined
-          ? deserializeIngestkorea_restJson_AlimtalkTemplateButton(output.buttons)
-          : undefined,
-      securityFlag: output.securityFlag != null ? output.securityFlag : undefined,
-      isBlock: output.isBlock != null ? output.isBlock : undefined,
-      isDormant: output.isDormant != null ? output.isDormant : undefined,
-    };
-  });
-  return result;
+const de_TemplateDetailList = (output: any[]): TemplateDetail[] => {
+  return (output || []).filter((e) => e != null).map((entry) => de_TemplateDetail(entry));
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplateComment = (outputs: any[]): Comment[] => {
-  let result = outputs.map((output) => {
-    return {
-      commentId: output.commentId != undefined ? output.commentId : undefined,
-      content: output.content != undefined ? output.content : undefined,
-      status: output.status != undefined ? output.status : undefined,
-      createTime: output.createTime != undefined ? output.createTime : undefined,
-      attachment:
-        output.attachment != undefined
-          ? deserializeIngestkorea_restJson_AlimtalkTemplateCommentAttachment(output.attachment)
-          : undefined,
-    };
-  });
-  return result;
+const de_TemplateDetail = (output: any): TemplateDetail => {
+  return {
+    ...de_Template(output),
+    categoryCode: output.categoryCode != undefined ? output.categoryCode : undefined,
+    categoryName: output.categoryName != undefined ? output.categoryName : undefined,
+    messageType: output.messageType != undefined ? output.messageType : undefined,
+    emphasizeType: output.emphasizeType != undefined ? output.emphasizeType : undefined,
+    content: output.content != undefined ? output.content : undefined,
+    adContent: output.adContent != undefined ? output.adContent : undefined,
+    extraContent: output.extraContent != undefined ? output.extraContent : undefined,
+    title: output.title != undefined ? output.title : undefined,
+    additionalTitle: output.additionalTitle != undefined ? output.additionalTitle : undefined,
+    comments: output.comments != undefined ? de_CommentList(output.comments) : [],
+    templateInspectionStatus:
+      output.templateInspectionStatus != undefined ? output.templateInspectionStatus : undefined,
+    templateStatus: output.templateStatus != undefined ? output.templateStatus : undefined,
+    buttons: output.buttons != undefined ? de_TemplateButtonExtendList(output.buttons) : [],
+    securityFlag: output.securityFlag !== undefined ? output.securityFlag : undefined,
+    isBlock: output.isBlock !== undefined ? output.isBlock : undefined,
+    isDormant: output.isDormant !== undefined ? output.isDormant : undefined,
+  };
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplateCommentAttachment = (outputs: any[]): Attachment[] => {
-  let result: Attachment[] = outputs.map((output) => {
-    return {
-      fileName: output.fileName != undefined ? output.fileName : undefined,
-      fileUrl: output.fileUrl != undefined ? output.fileUrl : undefined,
-    };
-  });
-  return result;
+const de_CommentList = (output: any[]): Comment[] => {
+  return (output || []).filter((e) => e != null).map((entry) => de_Comment(entry));
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplateButton = (outputs: any[]): TemplateButtons[] => {
-  let result: TemplateButtons[] = outputs.map((output) => {
-    return {
-      order: output.order != undefined ? output.order : undefined,
-      type: output.type != undefined ? output.type : undefined,
-      name: output.name != undefined ? output.name : undefined,
-      linkMobile: output.linkMobile != undefined ? output.linkMobile : undefined,
-      linkPc: output.linkPc != undefined ? output.linkPc : undefined,
-      schemeIos: output.schemeIos != undefined ? output.schemeIos : undefined,
-      schemeAndroid: output.schemeAndroid != undefined ? output.schemeAndroid : undefined,
-    };
-  });
-  return result;
+const de_Comment = (output: any): Comment => {
+  return {
+    commentId: output.commentId != undefined ? output.commentId : undefined,
+    content: output.content != undefined ? output.content : undefined,
+    status: output.status != undefined ? output.status : undefined,
+    createTime: output.createTime != undefined ? output.createTime : undefined,
+    attachment: output.attachment != undefined ? de_AttachmentList(output.attachment) : [],
+  };
+};
+
+const de_AttachmentList = (output: any[]): Attachment[] => {
+  return (output || []).filter((e) => e != null).map((entry) => de_Attachment(entry));
+};
+
+const de_Attachment = (output: any): Attachment => {
+  return {
+    fileName: output.fileName != undefined ? output.fileName : undefined,
+    fileUrl: output.fileUrl != undefined ? output.fileUrl : undefined,
+  };
+};
+
+const de_TemplateButtonExtendList = (output: any[]): TemplateButtonExtend[] => {
+  return (output || []).filter((e) => e != null).map((entry) => de_TemplateButtonExtend(entry));
+};
+
+const de_TemplateButtonExtend = (output: any): TemplateButtonExtend => {
+  return {
+    order: output.order !== undefined ? output.order : undefined,
+    type: output.type != undefined ? output.type : undefined,
+    name: output.name != undefined ? output.name : undefined,
+    linkMobile: output.linkMobile != undefined ? output.linkMobile : undefined,
+    linkPc: output.linkPc != undefined ? output.linkPc : undefined,
+    schemeIos: output.schemeIos != undefined ? output.schemeIos : undefined,
+    schemeAndroid: output.schemeAndroid != undefined ? output.schemeAndroid : undefined,
+  };
 };

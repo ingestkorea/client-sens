@@ -1,77 +1,77 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { GetAlimtalkStatusOutput, StatusMessage, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
-import { GetAlimtalkStatusCommandInput, GetAlimtalkStatusCommandOutput } from "../commands/GetAlimtalkStatusCommand";
-import { parseBody, parseErrorBody, deserializeMetadata, parseReceivedMessage } from "./";
+import { HttpRequest } from "@ingestkorea/util-http-handler";
+import {
+  SensClientResolvedConfig,
+  RequestSerializer,
+  ResponseDeserializer,
+  GetAlimtalkStatusResult,
+  AlimtalkMessageStatus,
+} from "../models/index.js";
+import { GetAlimtalkStatusCommandInput, GetAlimtalkStatusCommandOutput } from "../commands/GetAlimtalkStatusCommand.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
+import { de_AlimtalkMessageRequestStatus } from "./SendAlimtalk.js";
 
-export const serializeIngestkorea_restJson_GetAlimtalkStatusCommand = async (
-  input: GetAlimtalkStatusCommandInput,
-  config: SensClientResolvedConfig
-): Promise<HttpRequest> => {
+export const se_GetAlimtalkStatusCommand: RequestSerializer<
+  GetAlimtalkStatusCommandInput,
+  SensClientResolvedConfig
+> = async (input, config) => {
   const hostname = "sens.apigw.ntruss.com";
   const path = "/alimtalk/v2/services/" + config.serviceId.kakao + "/messages";
   const headers = {
     host: hostname,
   };
-  const query = {
-    requestId: input.requestId,
-  };
+  const query = Object.entries(input).reduce((acc, [key, value]) => {
+    if (value !== undefined && value !== null) {
+      acc[key] = String(value);
+    }
+    return acc;
+  }, {} as Record<string, string>);
+
   return new HttpRequest({
     protocol: "https:",
     method: "GET",
-    hostname: hostname,
-    path: path,
-    headers: headers,
-    query: query,
+    hostname,
+    path,
+    headers,
+    query,
   });
 };
 
-export const deserializeIngestkorea_restJson_GetAlimtalkStatusCommand = async (response: {
-  response: HttpResponse;
-  output: MetadataBearer;
-}): Promise<GetAlimtalkStatusCommandOutput> => {
-  const { response: httpResponse, output } = response;
-  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
+export const de_GetAlimtalkStatusCommand: ResponseDeserializer<
+  GetAlimtalkStatusCommandOutput,
+  SensClientResolvedConfig
+> = async (response, config) => {
+  if (response.statusCode >= 300) await parseErrorBody(response);
 
-  const data: any = await parseBody(httpResponse);
-  let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_GetAlimtalkStatusOutput(data);
+  const data = await parseBody(response);
+  const contents = de_GetAlimtalkStatusResult(data);
 
   return {
-    $metadata: {
-      ...deserializeMetadata(httpResponse),
-      ...output.$metadata,
-    },
-    ...contents,
+    $metadata: deserializeMetadata(response),
+    ...compact(contents),
   };
 };
 
-export const deserializeIngestkorea_restJson_GetAlimtalkStatusOutput = async (
-  output: any
-): Promise<GetAlimtalkStatusOutput> => {
+export const de_GetAlimtalkStatusResult = (output: any): GetAlimtalkStatusResult => {
   return {
     requestId: output.requestId != undefined ? output.requestId : undefined,
     statusCode: output.statusCode != undefined ? output.statusCode : undefined,
     statusName: output.statusName != undefined ? output.statusName : undefined,
-    messages:
-      output.messages != undefined
-        ? deserializeIngestkorea_restJson_GetAlimtalkStatusMessages(output.messages)
-        : undefined,
-    pageSize: output.pageSize != undefined ? output.pageSize : undefined,
-    pageIndex: output.pageIndex != undefined ? output.pageIndex : undefined,
-    itemCount: output.itemCount != undefined ? output.itemCount : undefined,
-    hasMore: output.hasMore != undefined ? output.hasMore : undefined,
+    messages: output.messages ? de_AlimtalkMessageStatusList(output.messages) : [],
+    pageSize: output.pageSize !== undefined ? output.pageSize : undefined,
+    pageIndex: output.pageIndex !== undefined ? output.pageIndex : undefined,
+    itemCount: output.itemCount !== undefined ? output.itemCount : undefined,
+    hasMore: output.hasMore !== undefined ? output.hasMore : undefined,
+    nextToken: output.nextToken != undefined ? output.nextToken : undefined,
   };
 };
 
-export const deserializeIngestkorea_restJson_GetAlimtalkStatusMessages = (outputs: any[]): StatusMessage[] => {
-  const result: StatusMessage[] = outputs.map(parseStatusMessage);
-  return result;
+const de_AlimtalkMessageStatusList = (output: any[]): AlimtalkMessageStatus[] => {
+  return (output || []).filter((e) => e != null).map((entry) => de_AlimtalkMessageStatus(entry));
 };
 
-export const parseStatusMessage = (output: any): StatusMessage => {
+export const de_AlimtalkMessageStatus = (output: any): AlimtalkMessageStatus => {
   return {
-    ...parseReceivedMessage(output),
+    ...de_AlimtalkMessageRequestStatus(output),
     requestId: output.requestId != undefined ? output.requestId : undefined,
     requestTime: output.requestTime != undefined ? output.requestTime : undefined,
     plusFriendId: output.plusFriendId != undefined ? output.plusFriendId : undefined,

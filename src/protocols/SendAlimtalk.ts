@@ -1,13 +1,18 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SendAlimtalkOutput, ReceivedMessage, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
-import { SendAlimtalkCommandInput, SendAlimtalkCommandOutput } from "../commands/SendAlimtalkCommand";
-import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
+import { HttpRequest } from "@ingestkorea/util-http-handler";
+import {
+  SensClientResolvedConfig,
+  RequestSerializer,
+  ResponseDeserializer,
+  SendAlimtalkResult,
+  AlimtalkMessageRequestStatus,
+} from "../models/index.js";
+import { SendAlimtalkCommandInput, SendAlimtalkCommandOutput } from "../commands/SendAlimtalkCommand.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
 
-export const serializeIngestkorea_restJson_SendAlimtalkCommand = async (
-  input: SendAlimtalkCommandInput,
-  config: SensClientResolvedConfig
-): Promise<HttpRequest> => {
+export const se_SendAlimtalkCommand: RequestSerializer<SendAlimtalkCommandInput, SensClientResolvedConfig> = async (
+  input,
+  config
+) => {
   const hostname = "sens.apigw.ntruss.com";
   const path = "/alimtalk/v2/services/" + config.serviceId.kakao + "/messages";
   const headers = {
@@ -19,53 +24,48 @@ export const serializeIngestkorea_restJson_SendAlimtalkCommand = async (
     templateCode: input.templateCode,
     messages: input.messages,
   });
+
   return new HttpRequest({
     protocol: "https:",
     method: "POST",
-    hostname: hostname,
-    path: path,
-    headers: headers,
-    body: body,
+    hostname,
+    path,
+    headers,
+    body,
   });
 };
 
-export const deserializeIngestkorea_restJson_SendAlimtalkCommand = async (response: {
-  response: HttpResponse;
-  output: MetadataBearer;
-}): Promise<SendAlimtalkCommandOutput> => {
-  const { response: httpResponse, output } = response;
-  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
+export const de_SendAlimtalkCommand: ResponseDeserializer<SendAlimtalkCommandOutput, SensClientResolvedConfig> = async (
+  response,
+  config
+) => {
+  if (response.statusCode >= 300) await parseErrorBody(response);
 
-  const data: any = await parseBody(httpResponse); // SendAlimtalkCommandOutput
-  let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_SendMessageOutput(data);
+  const data = await parseBody(response);
+  const contents = de_SendAlimtalkResult(data);
 
   return {
-    $metadata: {
-      ...deserializeMetadata(httpResponse),
-      ...output.$metadata,
-    },
-    ...contents,
+    $metadata: deserializeMetadata(response),
+    ...compact(contents),
   };
 };
 
-export const deserializeIngestkorea_restJson_SendMessageOutput = async (output: any): Promise<SendAlimtalkOutput> => {
+const de_SendAlimtalkResult = (output: any): SendAlimtalkResult => {
   return {
     requestId: output.requestId != undefined ? output.requestId : undefined,
     requestTime: output.requestTime != undefined ? output.requestTime : undefined,
     statusCode: output.statusCode != undefined ? output.statusCode : undefined,
     statusName: output.statusName != undefined ? output.statusName : undefined,
-    messages:
-      output.messages != undefined ? deserializeIngestkorea_restJson_ReceivedMessages(output.messages) : undefined,
+    messages: output.messages ? de_AlimtalkMessageRequestStatusList(output.messages) : [],
   };
 };
 
-export const deserializeIngestkorea_restJson_ReceivedMessages = (outputs: any[]): ReceivedMessage[] => {
-  const result: ReceivedMessage[] = outputs.map(parseReceivedMessage);
+const de_AlimtalkMessageRequestStatusList = (output: any[]): AlimtalkMessageRequestStatus[] => {
+  const result = (output || []).filter((e) => e != null).map((entry) => de_AlimtalkMessageRequestStatus(entry));
   return result;
 };
 
-export const parseReceivedMessage = (output: any): ReceivedMessage => {
+export const de_AlimtalkMessageRequestStatus = (output: any): AlimtalkMessageRequestStatus => {
   return {
     messageId: output.messageId != undefined ? output.messageId : undefined,
     to: output.to != undefined ? output.to : undefined,

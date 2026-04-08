@@ -1,16 +1,21 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { ListAlimtalkChannelsOutput, Channel, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
+import { HttpRequest } from "@ingestkorea/util-http-handler";
+import {
+  SensClientResolvedConfig,
+  RequestSerializer,
+  ResponseDeserializer,
+  ListAlimtalkChannelsResult,
+  AlimtalkChannel,
+} from "../models/index.js";
 import {
   ListAlimtalkChannelsCommandInput,
   ListAlimtalkChannelsCommandOutput,
-} from "../commands/ListAlimtalkChannelsCommand";
-import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
+} from "../commands/ListAlimtalkChannelsCommand.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
 
-export const serializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (
-  input: ListAlimtalkChannelsCommandInput,
-  config: SensClientResolvedConfig
-): Promise<HttpRequest> => {
+export const se_ListAlimtalkChannelsCommand: RequestSerializer<
+  ListAlimtalkChannelsCommandInput,
+  SensClientResolvedConfig
+> = async (input, config) => {
   const hostname = "sens.apigw.ntruss.com";
   const path = "/alimtalk/v2/services/" + config.serviceId.kakao + "/channels";
   const headers = {
@@ -25,45 +30,39 @@ export const serializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (
   });
 };
 
-export const deserializeIngestkorea_restJson_ListAlimtalkChannelsCommand = async (response: {
-  response: HttpResponse;
-  output: MetadataBearer;
-}): Promise<ListAlimtalkChannelsCommandOutput> => {
-  const { response: httpResponse, output } = response;
-  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
+export const de_ListAlimtalkChannelsCommand: ResponseDeserializer<
+  ListAlimtalkChannelsCommandOutput,
+  SensClientResolvedConfig
+> = async (response, config) => {
+  if (response.statusCode >= 300) await parseErrorBody(response);
 
-  const data: any = await parseBody(httpResponse); // ListAlimtalkChannelsOutput
-  let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_ListAlimtalkChannelsOutput(data);
+  const data = await parseBody(response);
+  const contents = de_ListAlimtalkChannelsResult(data);
 
   return {
-    $metadata: {
-      ...deserializeMetadata(httpResponse),
-      ...output.$metadata,
-    },
-    ...contents,
+    $metadata: deserializeMetadata(response),
+    ...compact(contents),
   };
 };
 
-export const deserializeIngestkorea_restJson_ListAlimtalkChannelsOutput = async (
-  outputs: any[]
-): Promise<ListAlimtalkChannelsOutput> => {
+const de_ListAlimtalkChannelsResult = (output: any): ListAlimtalkChannelsResult => {
   return {
-    channels: deserializeIngestkorea_restJson_Channel(outputs),
+    channels: output.channels ? de_AlimtalkChannelList(output.channels) : [],
   };
 };
 
-export const deserializeIngestkorea_restJson_Channel = (outputs: any[]): Channel[] => {
-  const result: Channel[] = outputs.map((output) => {
-    return {
-      createTime: output.createTime != undefined ? output.createTime : undefined,
-      updateTime: output.updateTime != undefined ? output.updateTime : undefined,
-      serviceId: output.serviceId != undefined ? output.serviceId : undefined,
-      channelId: output.channelId != undefined ? output.channelId : undefined,
-      channelName: output.channelName != undefined ? output.channelName : undefined,
-      channelStatus: output.channelStatus != undefined ? output.channelStatus : undefined,
-      useSmsFailover: output.useSmsFailover != undefined ? output.useSmsFailover : undefined,
-    };
-  });
-  return result;
+const de_AlimtalkChannelList = (output: any[]): AlimtalkChannel[] => {
+  return (output || []).filter((e) => e != null).map((entry) => de_AlimtalkChannel(entry));
+};
+
+const de_AlimtalkChannel = (output: any): AlimtalkChannel => {
+  return {
+    createTime: output.createTime != undefined ? output.createTime : undefined,
+    updateTime: output.updateTime != undefined ? output.updateTime : undefined,
+    serviceId: output.serviceId != undefined ? output.serviceId : undefined,
+    channelId: output.channelId != undefined ? output.channelId : undefined,
+    channelName: output.channelName != undefined ? output.channelName : undefined,
+    channelStatus: output.channelStatus != undefined ? output.channelStatus : undefined,
+    useSmsFailover: output.useSmsFailover != undefined ? output.useSmsFailover : undefined,
+  };
 };

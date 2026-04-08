@@ -1,14 +1,16 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SensCommand, GetSMSStatusInput, GetSMSStatusOutput, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
 import {
-  serializeIngestkorea_restJson_GetSMSStatusCommand,
-  deserializeIngestkorea_restJson_GetSMSStatusCommand,
-} from "../protocols/GetSMSStatus";
-import { IngestkoreaError } from "@ingestkorea/util-error-handler";
+  SensClientResolvedConfig,
+  SensCommand,
+  GetSMSStatusRequest,
+  GetSMSStatusResult,
+  MetadataBearer,
+  RequestSerializer,
+  ResponseDeserializer,
+} from "../models/index.js";
+import { se_GetSMSStatusCommand, de_GetSMSStatusCommand } from "../protocols/GetSMSStatus.js";
 
-export interface GetSMSStatusCommandInput extends GetSMSStatusInput {}
-export interface GetSMSStatusCommandOutput extends GetSMSStatusOutput, MetadataBearer {}
+export interface GetSMSStatusCommandInput extends GetSMSStatusRequest {}
+export interface GetSMSStatusCommandOutput extends MetadataBearer, GetSMSStatusResult {}
 
 export class GetSMSStatusCommand extends SensCommand<
   GetSMSStatusCommandInput,
@@ -16,25 +18,14 @@ export class GetSMSStatusCommand extends SensCommand<
   SensClientResolvedConfig
 > {
   input: GetSMSStatusCommandInput;
+  serializer: RequestSerializer<GetSMSStatusCommandInput, SensClientResolvedConfig>;
+  deserializer: ResponseDeserializer<GetSMSStatusCommandOutput, SensClientResolvedConfig>;
   constructor(input: GetSMSStatusCommandInput) {
     super(input);
     this.input = {
-      ...input,
+      requestId: input.requestId,
     };
-  }
-  async serialize(input: GetSMSStatusCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
-    if (!config.serviceId.sms)
-      throw new IngestkoreaError({
-        code: 400,
-        type: "Bad Request",
-        message: "Invalid Params",
-        description: "Please Check SMS ServiceId",
-      });
-    let request = await serializeIngestkorea_restJson_GetSMSStatusCommand(input, config);
-    return request;
-  }
-  async deserialize(response: { response: HttpResponse; output: MetadataBearer }): Promise<GetSMSStatusCommandOutput> {
-    let output = await deserializeIngestkorea_restJson_GetSMSStatusCommand(response);
-    return output;
+    this.serializer = se_GetSMSStatusCommand;
+    this.deserializer = de_GetSMSStatusCommand;
   }
 }

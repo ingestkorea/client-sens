@@ -1,20 +1,17 @@
-export interface GetSMSResultInput {
+import { SMSMessageRequestStatus } from "./GetSMSStatus.js";
+
+export interface GetSMSResultRequest {
   messageId: string;
 }
 
-export interface GetSMSResultOutput {
+export interface GetSMSResultResult {
   statusCode?: string;
   statusName?: string;
-  messages?: SMSResultMessage[];
+  messages?: SMSMessageStatus[];
 }
 
-export interface SMSResultMessage {
-  requestTime?: string;
-  contentType?: string;
+export interface SMSMessageStatus extends SMSMessageRequestStatus {
   content?: string;
-  countryCode?: string;
-  from?: string;
-  to?: string;
   status?: string;
   statusCode?: string;
   statusMessage?: string;

@@ -3,7 +3,7 @@ export interface MetadataBearer {
 }
 
 export interface ResponseMetadata {
-  httpStatusCode?: number;
-  attempts?: number;
-  totalRetryDelay?: number;
+  httpStatusCode: number;
+  attempts: number;
+  totalRetryDelay: number;
 }

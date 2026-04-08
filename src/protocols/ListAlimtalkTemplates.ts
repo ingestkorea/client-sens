@@ -1,16 +1,21 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { ListAlimtalkTemplatesOutput, Template, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
+import { HttpRequest } from "@ingestkorea/util-http-handler";
+import {
+  SensClientResolvedConfig,
+  RequestSerializer,
+  ResponseDeserializer,
+  ListAlimtalkTemplatesResult,
+  Template,
+} from "../models/index.js";
 import {
   ListAlimtalkTemplatesCommandInput,
   ListAlimtalkTemplatesCommandOutput,
-} from "../commands/ListAlimtalkTemplatesCommand";
-import { parseBody, parseErrorBody, deserializeMetadata } from "./constants";
+} from "../commands/ListAlimtalkTemplatesCommand.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
 
-export const serializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async (
-  input: ListAlimtalkTemplatesCommandInput,
-  config: SensClientResolvedConfig
-): Promise<HttpRequest> => {
+export const se_ListAlimtalkTemplatesCommand: RequestSerializer<
+  ListAlimtalkTemplatesCommandInput,
+  SensClientResolvedConfig
+> = async (input, config) => {
   const hostname = "sens.apigw.ntruss.com";
   const path = "/alimtalk/v2/services/" + config.serviceId.kakao + "/templates";
   const headers = {
@@ -19,6 +24,7 @@ export const serializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async 
   const query = {
     channelId: input.channelId,
   };
+
   return new HttpRequest({
     protocol: "https:",
     method: "GET",
@@ -29,40 +35,43 @@ export const serializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async 
   });
 };
 
-export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesCommand = async (response: {
-  response: HttpResponse;
-  output: MetadataBearer;
-}): Promise<ListAlimtalkTemplatesCommandOutput> => {
-  const { response: httpResponse, output } = response;
-  if (httpResponse.statusCode > 300) await parseErrorBody(httpResponse);
+export const de_ListAlimtalkTemplatesCommand: ResponseDeserializer<
+  ListAlimtalkTemplatesCommandOutput,
+  SensClientResolvedConfig
+> = async (response, config) => {
+  if (response.statusCode >= 300) await parseErrorBody(response);
 
-  const data: any = await parseBody(httpResponse); // ListAlimtalkTemplatesOutput
-  let contents: any = {};
-  contents = await deserializeIngestkorea_restJson_ListAlimtalkTemplatesOutput(data);
+  const data = await parseBody(response);
+  const contents = de_ListAlimtalkTemplatesResult(data);
 
   return {
-    $metadata: {
-      ...deserializeMetadata(httpResponse),
-      ...output.$metadata,
-    },
-    ...contents,
+    $metadata: deserializeMetadata(response),
+    ...compact(contents),
   };
 };
 
-export const deserializeIngestkorea_restJson_ListAlimtalkTemplatesOutput = async (
-  output: any[]
-): Promise<ListAlimtalkTemplatesOutput> => {
+const de_ListAlimtalkTemplatesResult = (output: any[]): ListAlimtalkTemplatesResult => {
   return {
-    templates: deserializeIngestkorea_restJson_AlimtalkTemplates(output),
+    templates: Array.isArray(output) ? de_TemplateList(output) : [],
   };
 };
 
-export const deserializeIngestkorea_restJson_AlimtalkTemplates = (outputs: any[]): Template[] => {
-  let result = outputs.map(parseTemplate);
-  return result;
+const de_TemplateList = (output: any[]): Template[] => {
+  return (output || [])
+    .filter((e) => e != null)
+    .map((entry) => de_Template(entry))
+    .sort((a, b) => {
+      // 생성 날짜 기준 내림차순
+      const dateA = (a.createTime ?? "").replace(/\.\d{3}Z?$/, "");
+      const dateB = (b.createTime ?? "").replace(/\.\d{3}Z?$/, "");
+
+      if (dateB < dateA) return -1;
+      if (dateB > dateA) return 1;
+      return 0;
+    });
 };
 
-export const parseTemplate = (output: any): Template => {
+export const de_Template = (output: any): Template => {
   return {
     createTime: output.createTime != undefined ? output.createTime : undefined,
     updateTime: output.updateTime != undefined ? output.updateTime : undefined,

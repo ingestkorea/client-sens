@@ -1,14 +1,16 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SensCommand, GetAlimtalkTemplateInput, GetAlimtalkTemplateOutput, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
 import {
-  serializeIngestkorea_restJson_GetAlimtalkTemplateCommand,
-  deserializeIngestkorea_restJson_GetAlimtalkTemplateCommand,
-} from "../protocols/GetAlimtalkTemplate";
-import { IngestkoreaError } from "@ingestkorea/util-error-handler";
+  SensClientResolvedConfig,
+  SensCommand,
+  GetAlimtalkTemplateRequest,
+  GetAlimtalkTemplateResult,
+  MetadataBearer,
+  RequestSerializer,
+  ResponseDeserializer,
+} from "../models/index.js";
+import { se_GetAlimtalkTemplateCommand, de_GetAlimtalkTemplateCommand } from "../protocols/GetAlimtalkTemplate.js";
 
-export interface GetAlimtalkTemplateCommandInput extends GetAlimtalkTemplateInput {}
-export interface GetAlimtalkTemplateCommandOutput extends GetAlimtalkTemplateOutput, MetadataBearer {}
+export interface GetAlimtalkTemplateCommandInput extends GetAlimtalkTemplateRequest {}
+export interface GetAlimtalkTemplateCommandOutput extends MetadataBearer, GetAlimtalkTemplateResult {}
 
 export class GetAlimtalkTemplateCommand extends SensCommand<
   GetAlimtalkTemplateCommandInput,
@@ -16,29 +18,15 @@ export class GetAlimtalkTemplateCommand extends SensCommand<
   SensClientResolvedConfig
 > {
   input: GetAlimtalkTemplateCommandInput;
+  serializer: RequestSerializer<GetAlimtalkTemplateCommandInput, SensClientResolvedConfig>;
+  deserializer: ResponseDeserializer<GetAlimtalkTemplateCommandOutput, SensClientResolvedConfig>;
   constructor(input: GetAlimtalkTemplateCommandInput) {
     super(input);
     this.input = {
       channelId: input.channelId,
       templateCode: input.templateCode,
     };
-  }
-  async serialize(input: GetAlimtalkTemplateCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
-    if (!config.serviceId.kakao)
-      throw new IngestkoreaError({
-        code: 400,
-        type: "Bad Request",
-        message: "Invalid Params",
-        description: "Please Check Kakao ServiceId",
-      });
-    let request = await serializeIngestkorea_restJson_GetAlimtalkTemplateCommand(input, config);
-    return request;
-  }
-  async deserialize(response: {
-    response: HttpResponse;
-    output: MetadataBearer;
-  }): Promise<GetAlimtalkTemplateCommandOutput> {
-    let output = await deserializeIngestkorea_restJson_GetAlimtalkTemplateCommand(response);
-    return output;
+    this.serializer = se_GetAlimtalkTemplateCommand;
+    this.deserializer = de_GetAlimtalkTemplateCommand;
   }
 }

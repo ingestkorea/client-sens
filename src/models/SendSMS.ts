@@ -7,7 +7,7 @@ export type SMSMessage = {
   content?: string;
 };
 
-export interface SendSMSInput {
+export interface SendSMSRequest {
   from: string;
   content: string;
   messages: SMSMessage[];
@@ -17,7 +17,7 @@ export interface SendSMSInput {
   subject?: string;
 }
 
-export interface SendSMSOutput {
+export interface SendSMSResult {
   requestId?: string;
   requestTime?: string;
   statusCode?: string;

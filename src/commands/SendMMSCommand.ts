@@ -1,141 +1,119 @@
-import { HttpRequest, HttpResponse } from "@ingestkorea/util-http-handler";
-import { SensCommand, SendMMSInput, SendMMSOutput, MessageType, SMSMessage, SendFile, MetadataBearer } from "../models";
-import { SensClientResolvedConfig } from "../SensClient";
-import {
-  serializeIngestkorea_restJson_SendMMSCommand,
-  deserializeIngestkorea_restJson_SendMMSCommand,
-} from "../protocols/SendMMS";
-import { IngestkoreaError } from "@ingestkorea/util-error-handler";
-import { LMS_MAX, MMS_FILE_MAX, trimText, prettyPhoneNum, getContentLength } from "./constants";
-
-import { parse } from "node:path";
-import { randomUUID } from "node:crypto";
+import { parse, format } from "node:path";
+import { createHash } from "node:crypto";
 import { readFileSync, existsSync } from "node:fs";
+import {
+  SensClientResolvedConfig,
+  SensCommand,
+  SendMMSRequest,
+  SendMMSResult,
+  MetadataBearer,
+  RequestSerializer,
+  ResponseDeserializer,
+  MMS_MAX_SUPPORT_FILE_SIZE,
+  MMS_SUPPORT_FILE_EXTENSION,
+  SendFile,
+  SensError,
+} from "../models/index.js";
+import { se_SendMMSCommand, de_SendMMSCommand } from "../protocols/SendMMS.js";
+import { trimText, prettyPhoneNum } from "./constants";
+import { resolveInputMessages } from "./SendSMSCommand.js";
 
-export interface SendMMSCommandInput extends SendMMSInput {}
-export interface SendMMSCommandOutput extends SendMMSOutput, MetadataBearer {}
+export interface SendMMSCommandInput extends SendMMSRequest {}
+export interface SendMMSCommandOutput extends MetadataBearer, SendMMSResult {}
 
 export class SendMMSCommand extends SensCommand<SendMMSCommandInput, SendMMSCommandOutput, SensClientResolvedConfig> {
   input: SendMMSCommandInput;
+  serializer: RequestSerializer<SendMMSCommandInput, SensClientResolvedConfig>;
+  deserializer: ResponseDeserializer<SendMMSCommandOutput, SensClientResolvedConfig>;
+
   constructor(input: SendMMSCommandInput) {
     super(input);
+
+    const content = input.content ? trimText(input.content) : "내용없음";
+    const subject = input.subject ? trimText(input.subject) : "제목없음";
+
+    const messages = resolveInputMessages(input.messages, { defaultContent: content, defaultSubject: subject });
+
     this.input = {
-      ...input,
       from: prettyPhoneNum(input.from),
-      content: resolveInputContent(input.content),
-      type: resolveInputMessageType(input.type),
-      messages: resolveInputMessages(input.messages),
-      files: resolveInputFiles(input.files),
+      content,
+      messages,
+      type: "MMS",
+      contentType: input.contentType ? input.contentType : "COMM",
+      countryCode: input.countryCode ? input.countryCode : "82",
+      subject,
+      files: (input.files || []).map((file) => {
+        return resolveSendFile(file, { maxKiB: MMS_MAX_SUPPORT_FILE_SIZE, supportExt: MMS_SUPPORT_FILE_EXTENSION });
+      }),
     };
-  }
-  async serialize(input: SendMMSCommandInput, config: SensClientResolvedConfig): Promise<HttpRequest> {
-    if (!config.serviceId.sms)
-      throw new IngestkoreaError({
-        code: 400,
-        type: "Bad Request",
-        message: "Invalid Params",
-        description: "Please Check SMS ServiceId",
-      });
-    let request = await serializeIngestkorea_restJson_SendMMSCommand(input, config);
-    return request;
-  }
-  async deserialize(response: { response: HttpResponse; output: MetadataBearer }): Promise<SendMMSCommandOutput> {
-    let output = await deserializeIngestkorea_restJson_SendMMSCommand(response);
-    return output;
+    this.serializer = se_SendMMSCommand;
+    this.deserializer = de_SendMMSCommand;
   }
 }
 
-const resolveInputContent = (content: string): string => {
-  const resolvedContent = trimText(content);
-  const contentLength = getContentLength(resolvedContent);
+const resolveSendFile = (file: SendFile, options: { maxKiB: number; supportExt: string[] }): SendFile => {
+  const parsed = parse(file.name); // { dir, name, ext, base }
+  const ext = parsed.ext.toLocaleLowerCase();
 
-  if (!contentLength)
-    throw new IngestkoreaError({
+  if (!options.supportExt.includes(ext)) {
+    throw new SensError({
       code: 400,
       type: "Bad Request",
-      message: "Invalid Request",
-      description: `Please check input message`,
+      message: "지원하지 않는 확장자입니다.",
+      invalidInputs: [
+        { type: "not-valid.args", message: `${options.supportExt.join(", ")} 형식의 첨부파일만 지원합니다.` },
+      ],
     });
-  if (contentLength > LMS_MAX)
-    throw new IngestkoreaError({
-      code: 400,
-      type: "Bad Request",
-      message: "Invalid Request",
-      description: `Maximum message length is ${LMS_MAX}bytes`,
-    });
-  return resolvedContent;
-};
+  }
 
-const resolveInputMessages = (messages: SMSMessage[]): SMSMessage[] =>
-  messages.map((message) => {
+  if (file.body) {
+    const buffer = Buffer.from(file.body, "base64");
+    checkSizeLimit(buffer, options.maxKiB);
+
+    const hash = createHash("md5").update(buffer).digest("hex");
     return {
-      to: prettyPhoneNum(message.to),
-      ...(message.content != undefined && { content: resolveInputContent(message.content) }),
-      ...(message.subject != undefined && { subject: trimText(message.subject) }),
+      name: format({ name: hash, ext }),
+      body: file.body,
     };
-  });
+  }
 
-const resolveInputMessageType = (type?: MessageType): MessageType => {
-  if (type == "SMS" || type == "LMS")
-    throw new IngestkoreaError({
+  if (!existsSync(file.name)) {
+    throw new SensError({
       code: 400,
       type: "Bad Request",
-      message: "Invalid Request",
-      description: `Please Call SendSMSCommand`,
+      message: "파일이 존재하지 않습니다.",
+      invalidInputs: [{ type: "not-valid.args", message: `${file.name} 파일이 존재하지 않습니다.` }],
     });
-  return "MMS";
+  }
+
+  const buffer = readFileSync(file.name);
+  checkSizeLimit(buffer, options.maxKiB);
+
+  const hash = createHash("md5").update(buffer).digest("hex");
+
+  return {
+    name: format({ name: hash, ext }),
+    body: buffer.toString("base64"),
+  };
 };
 
-const resolveInputFiles = (files: SendFile[]): SendFile[] => {
-  if (!files.length)
-    throw new IngestkoreaError({
+const checkSizeLimit = (buffer: Buffer, maxKiB: number): void => {
+  const byteSize = buffer.length;
+  const kibSize = Math.ceil(byteSize / 1024);
+
+  if (kibSize > maxKiB) {
+    throw new SensError({
       code: 400,
       type: "Bad Request",
-      message: "Invalid Request",
-      description: `Please Check Input Files`,
+      message: `최대 첨부가능 용량이 초과되었습니다.`,
+      invalidInputs: [
+        {
+          type: "not-valid.args",
+          message: `최대 ${maxKiB}KiB까지 전송 가능합니다. 현재 ${kibSize}KiB`,
+        },
+      ],
     });
+  }
 
-  const output: SendFile[] = files.map((file) => {
-    const resolvedFileName = verifyFileName(file.name);
-    const resolvedFileBody = file.body != undefined ? file.body : getFileBody(file.name);
-
-    let byte = Buffer.from(resolvedFileBody, "base64").length;
-    let kib = Math.ceil(byte / 1024);
-    if (kib > MMS_FILE_MAX)
-      throw new IngestkoreaError({
-        code: 400,
-        type: "Bad Request",
-        message: "Invalid Request",
-        description: `Input File is ${kib}KiByte. Maximum File Size is ${MMS_FILE_MAX}Kibyte`,
-      });
-
-    return { name: resolvedFileName, body: resolvedFileBody };
-  });
-  return output;
-};
-
-const verifyFileName = (fileName: string): string => {
-  let { ext } = parse(fileName);
-  const uuid = randomUUID();
-  const extension = ext.replace(/jpeg|jpg/gi, "jpg");
-  if (extension != ".jpg")
-    throw new IngestkoreaError({
-      code: 400,
-      type: "Bad Request",
-      message: "Invalid Request",
-      description: `File Extension is not .jpg or .jpeg`,
-    });
-  return [uuid, extension].join("");
-};
-
-/** @returns base64 */
-const getFileBody = (fileName: string): string => {
-  if (!existsSync(fileName))
-    throw new IngestkoreaError({
-      code: 400,
-      type: "Bad Request",
-      message: "Invalid Request",
-      description: `${fileName} does not exist.`,
-    });
-  return readFileSync(fileName, { encoding: "base64" });
+  return;
 };

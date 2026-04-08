@@ -1,11 +1,12 @@
-import { TemplateButton } from "./SendAlimtalk";
+import { TemplateButton } from "./SendAlimtalk.js";
 
-export interface GetAlimtalkTemplateInput {
+export interface GetAlimtalkTemplateRequest {
   channelId: string;
   templateCode: string;
 }
 
-export interface GetAlimtalkTemplateOutput {
+// 주의: 포맷 맞추려고 수동으로 templates 변수 할당 >> 순수 response는 배열로 바로 넘어옴
+export interface GetAlimtalkTemplateResult {
   templates?: TemplateDetail[];
 }
 
@@ -27,7 +28,7 @@ export interface TemplateDetail {
   comments?: Comment[];
   templateInspectionStatus?: string;
   templateStatus?: string;
-  buttons?: TemplateButtons[];
+  buttons?: TemplateButtonExtend[];
   securityFlag?: boolean;
   isBlock?: boolean;
   isDormant?: boolean;
@@ -46,6 +47,6 @@ export interface Attachment {
   fileUrl?: string;
 }
 
-export interface TemplateButtons extends Partial<TemplateButton> {
+export interface TemplateButtonExtend extends Partial<TemplateButton> {
   order?: number;
 }

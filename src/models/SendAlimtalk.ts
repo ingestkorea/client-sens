@@ -1,14 +1,18 @@
-export interface SendAlimtalkInput {
+export const ALIMTALK_MAX_RECIPIENTS = 100;
+export const ALIMTALK_MAX_CONTENT_LENGTH = 1000;
+
+export interface SendAlimtalkRequest {
   plusFriendId: string;
   templateCode: string;
   messages: AlimtalkMessage[];
 }
-export interface SendAlimtalkOutput {
+
+export interface SendAlimtalkResult {
   requestId?: string;
   requestTime?: string;
   statusCode?: string;
   statusName?: string;
-  messages?: ReceivedMessage[];
+  messages?: AlimtalkMessageRequestStatus[];
 }
 
 export interface AlimtalkMessage {
@@ -32,7 +36,7 @@ const ALIMTALK_BUTTON_NAMES = ["배송 조회", "웹 링크", "앱 링크", "봇
 export type AlimtalkButtonType = (typeof ALIMTALK_BUTTON_TYPES)[number];
 export type AlimtalkButtonName = (typeof ALIMTALK_BUTTON_NAMES)[number];
 
-export interface ReceivedMessage {
+export interface AlimtalkMessageRequestStatus {
   messageId?: string;
   to?: string;
   countryCode?: string;

@@ -1,6 +1,29 @@
+# Dependencies
 node_modules/
-src/test/
-dist-*/
-package-lock.json
-.dockerignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / Editor
 .DS_Store
+.vscode/
+
+# Build outputs
+dist-*/
+build/
+
+# Local/dev-only
+dev/
+.env
+.env.*
+*.local
+
+# Tests
+src/test/
+
+# Artifacts
+*.zip
+
+# Lockfiles
+package-lock.json

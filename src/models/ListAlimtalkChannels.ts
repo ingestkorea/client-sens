@@ -1,10 +1,10 @@
-export interface ListAlimtalkChannelsInput {}
+export interface ListAlimtalkChannelsRequest {}
 
-export interface ListAlimtalkChannelsOutput {
-  channels: Channel[];
+export interface ListAlimtalkChannelsResult {
+  channels: AlimtalkChannel[];
 }
 
-export interface Channel {
+export interface AlimtalkChannel {
   createTime?: string;
   updateTime?: string;
   serviceId?: string;
