@@ -13,7 +13,7 @@ import {
   GetAlimtalkTemplateCommandInput,
   GetAlimtalkTemplateCommandOutput,
 } from "../commands/GetAlimtalkTemplateCommand.js";
-import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact, convertToUtc } from "./constants.js";
 import { de_Template } from "./ListAlimtalkTemplates.js";
 
 export const se_GetAlimtalkTemplateCommand: RequestSerializer<
@@ -97,7 +97,7 @@ const de_Comment = (output: any): Comment => {
     commentId: output.commentId != undefined ? output.commentId : undefined,
     content: output.content != undefined ? output.content : undefined,
     status: output.status != undefined ? output.status : undefined,
-    createTime: output.createTime != undefined ? output.createTime : undefined,
+    createTime: output.createTime != undefined ? convertToUtc(output.createTime) : undefined,
     attachment: output.attachment != undefined ? de_AttachmentList(output.attachment) : [],
   };
 };

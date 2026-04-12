@@ -18,6 +18,7 @@ export interface SendAlimtalkResult {
 export interface AlimtalkMessage {
   to: string;
   content: string;
+  useSmsFailover?: boolean;
   buttons?: TemplateButton[];
 }
 

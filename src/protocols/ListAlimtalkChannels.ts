@@ -10,7 +10,7 @@ import {
   ListAlimtalkChannelsCommandInput,
   ListAlimtalkChannelsCommandOutput,
 } from "../commands/ListAlimtalkChannelsCommand.js";
-import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact, convertToUtc } from "./constants.js";
 
 export const se_ListAlimtalkChannelsCommand: RequestSerializer<
   ListAlimtalkChannelsCommandInput,
@@ -57,8 +57,8 @@ const de_AlimtalkChannelList = (output: any[]): AlimtalkChannel[] => {
 
 const de_AlimtalkChannel = (output: any): AlimtalkChannel => {
   return {
-    createTime: output.createTime != undefined ? output.createTime : undefined,
-    updateTime: output.updateTime != undefined ? output.updateTime : undefined,
+    createTime: output.createTime != undefined ? convertToUtc(output.createTime) : undefined,
+    updateTime: output.updateTime != undefined ? convertToUtc(output.updateTime) : undefined,
     serviceId: output.serviceId != undefined ? output.serviceId : undefined,
     channelId: output.channelId != undefined ? output.channelId : undefined,
     channelName: output.channelName != undefined ? output.channelName : undefined,

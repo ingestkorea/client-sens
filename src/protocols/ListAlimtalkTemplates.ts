@@ -10,7 +10,7 @@ import {
   ListAlimtalkTemplatesCommandInput,
   ListAlimtalkTemplatesCommandOutput,
 } from "../commands/ListAlimtalkTemplatesCommand.js";
-import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact, convertToUtc } from "./constants.js";
 
 export const se_ListAlimtalkTemplatesCommand: RequestSerializer<
   ListAlimtalkTemplatesCommandInput,
@@ -73,8 +73,8 @@ const de_TemplateList = (output: any[]): Template[] => {
 
 export const de_Template = (output: any): Template => {
   return {
-    createTime: output.createTime != undefined ? output.createTime : undefined,
-    updateTime: output.updateTime != undefined ? output.updateTime : undefined,
+    createTime: output.createTime ? convertToUtc(output.createTime) : undefined,
+    updateTime: output.updateTime ? convertToUtc(output.updateTime) : undefined,
     channelId: output.channelId != undefined ? output.channelId : undefined,
     templateCode: output.templateCode != undefined ? output.templateCode : undefined,
     templateName: output.templateName != undefined ? output.templateName : undefined,

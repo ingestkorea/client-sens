@@ -7,7 +7,7 @@ import {
   SMSMessageRequestStatus,
 } from "../models/index.js";
 import { GetSMSStatusCommandInput, GetSMSStatusCommandOutput } from "../commands/GetSMSStatusCommand.js";
-import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact, convertToUtc } from "./constants.js";
 
 export const se_GetSMSStatusCommand: RequestSerializer<GetSMSStatusCommandInput, SensClientResolvedConfig> = async (
   input,
@@ -18,9 +18,12 @@ export const se_GetSMSStatusCommand: RequestSerializer<GetSMSStatusCommandInput,
   const headers = {
     host: hostname,
   };
-  const query = {
-    requestId: input.requestId,
-  };
+  const query = Object.entries(input).reduce((acc, [key, value]) => {
+    if (value !== undefined && value !== null) {
+      acc[key] = String(value);
+    }
+    return acc;
+  }, {} as Record<string, string>);
 
   return new HttpRequest({
     protocol: "https:",
@@ -47,12 +50,17 @@ export const de_GetSMSStatusCommand: ResponseDeserializer<GetSMSStatusCommandOut
   };
 };
 
-const de_GetSMSStatusResult = (output: any): GetSMSStatusResult => {
+export const de_GetSMSStatusResult = (output: any): GetSMSStatusResult => {
   return {
     requestId: output.requestId ? output.requestId : undefined,
     statusCode: output.statusCode ? output.statusCode : undefined,
     statusName: output.statusName ? output.statusName : undefined,
     messages: output.messages ? de_SMSMessageRequestStatusList(output.messages) : [],
+    pageSize: output.pageSize !== undefined ? output.pageSize : undefined,
+    pageIndex: output.pageIndex !== undefined ? output.pageIndex : undefined,
+    itemCount: output.itemCount !== undefined ? output.itemCount : undefined,
+    hasMore: output.hasMore !== undefined ? output.hasMore : undefined,
+    nextToken: output.nextToken ? output.nextToken : undefined,
   };
 };
 
@@ -62,11 +70,19 @@ const de_SMSMessageRequestStatusList = (output: any[]): SMSMessageRequestStatus[
 
 export const de_SMSMessageRequestStatus = (output: any): SMSMessageRequestStatus => {
   return {
-    messageId: output.messageId != undefined ? output.messageId : undefined,
-    requestTime: output.requestTime != undefined ? output.requestTime : undefined,
-    contentType: output.contentType != undefined ? output.contentType : undefined,
-    countryCode: output.countryCode != undefined ? output.countryCode : undefined,
-    from: output.from != undefined ? output.from : undefined,
-    to: output.to != undefined ? output.to : undefined,
+    requestId: output.requestId ? output.requestId : undefined,
+    messageId: output.messageId ? output.messageId : undefined,
+    requestTime: output.requestTime ? convertToUtc(output.requestTime) : undefined,
+    contentType: output.contentType ? output.contentType : undefined,
+    type: output.type ? output.type : undefined,
+    countryCode: output.countryCode ? output.countryCode : undefined,
+    from: output.from ? output.from : undefined,
+    to: output.to ? output.to : undefined,
+    completeTime: output.completeTime ? convertToUtc(output.completeTime) : undefined,
+    telcoCode: output.telcoCode ? output.telcoCode : undefined,
+    status: output.status ? output.status : undefined,
+    statusCode: output.statusCode ? output.statusCode : undefined,
+    statusName: output.statusName ? output.statusName : undefined,
+    statusMessage: output.statusMessage ? output.statusMessage : undefined,
   };
 };

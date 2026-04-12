@@ -60,14 +60,9 @@ const de_SMSMessageStatusList = (output: any[]): SMSMessageStatus[] => {
 const de_SMSMessageStatus = (output: any): SMSMessageStatus => {
   return {
     ...de_SMSMessageRequestStatus(output),
-    content: output.content != undefined ? output.content : undefined,
-    status: output.status != undefined ? output.status : undefined,
-    statusCode: output.statusCode != undefined ? output.statusCode : undefined,
-    statusMessage: output.statusMessage != undefined ? output.statusMessage : undefined,
-    statusName: output.statusName != undefined ? output.statusName : undefined,
-    completeTime: output.completeTime != undefined ? output.completeTime : undefined,
-    telcoCode: output.telcoCode != undefined ? output.telcoCode : undefined,
-    files: output.files != undefined ? de_FileList(output.files) : undefined,
+    subject: output.subject ? output.subject : undefined,
+    content: output.content ? output.content : undefined,
+    files: output.files ? de_FileList(output.files) : [],
   };
 };
 
@@ -77,6 +72,7 @@ const de_FileList = (output: any[]): File[] => {
 
 const de_File = (output: any): File => {
   return {
-    name: output.name != undefined ? output.name : undefined,
+    fileId: output.fileId ? output.fileId : undefined,
+    name: output.name ? output.name : undefined,
   };
 };

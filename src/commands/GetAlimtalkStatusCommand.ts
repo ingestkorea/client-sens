@@ -13,7 +13,6 @@ export interface GetAlimtalkStatusCommandInput extends GetAlimtalkStatusRequest 
 export interface GetAlimtalkStatusCommandOutput extends MetadataBearer, GetAlimtalkStatusResult {}
 
 const MAX_LIMIT = 100;
-const DEFAULT_LIMIT = 20;
 
 export class GetAlimtalkStatusCommand extends SensCommand<
   GetAlimtalkStatusCommandInput,
@@ -27,7 +26,7 @@ export class GetAlimtalkStatusCommand extends SensCommand<
     super(input);
     this.input = {
       requestId: input.requestId,
-      pageSize: Math.min(MAX_LIMIT, Math.max(1, input.pageSize ?? DEFAULT_LIMIT)),
+      pageSize: input.pageSize ? Math.min(MAX_LIMIT, Math.max(1, input.pageSize)) : MAX_LIMIT,
       ...(input.nextToken && { nextToken: input.nextToken }),
     };
     this.serializer = se_GetAlimtalkStatusCommand;

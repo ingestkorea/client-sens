@@ -11,16 +11,12 @@ export interface GetSMSResultResult {
 }
 
 export interface SMSMessageStatus extends SMSMessageRequestStatus {
+  subject?: string;
   content?: string;
-  status?: string;
-  statusCode?: string;
-  statusMessage?: string;
-  statusName?: string;
-  completeTime?: string;
-  telcoCode?: string;
   files?: File[];
 }
 
 export interface File {
+  fileId?: string;
   name?: string;
 }

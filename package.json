@@ -1,6 +1,6 @@
 {
   "name": "@ingestkorea/client-sens",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "INGESTKOREA SDK Naver Cloud Platform SENS Client for Node.js.",
   "exports": {
     ".": {

@@ -12,6 +12,8 @@ import { se_GetSMSStatusCommand, de_GetSMSStatusCommand } from "../protocols/Get
 export interface GetSMSStatusCommandInput extends GetSMSStatusRequest {}
 export interface GetSMSStatusCommandOutput extends MetadataBearer, GetSMSStatusResult {}
 
+const MAX_LIMIT = 100;
+
 export class GetSMSStatusCommand extends SensCommand<
   GetSMSStatusCommandInput,
   GetSMSStatusCommandOutput,
@@ -24,6 +26,8 @@ export class GetSMSStatusCommand extends SensCommand<
     super(input);
     this.input = {
       requestId: input.requestId,
+      pageSize: input.pageSize ? Math.min(MAX_LIMIT, Math.max(1, input.pageSize)) : MAX_LIMIT,
+      ...(input.nextToken && { nextToken: input.nextToken }),
     };
     this.serializer = se_GetSMSStatusCommand;
     this.deserializer = de_GetSMSStatusCommand;

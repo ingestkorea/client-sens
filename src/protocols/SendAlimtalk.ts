@@ -7,7 +7,7 @@ import {
   AlimtalkMessageRequestStatus,
 } from "../models/index.js";
 import { SendAlimtalkCommandInput, SendAlimtalkCommandOutput } from "../commands/SendAlimtalkCommand.js";
-import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact, convertToUtc } from "./constants.js";
 
 export const se_SendAlimtalkCommand: RequestSerializer<SendAlimtalkCommandInput, SensClientResolvedConfig> = async (
   input,
@@ -53,7 +53,7 @@ export const de_SendAlimtalkCommand: ResponseDeserializer<SendAlimtalkCommandOut
 const de_SendAlimtalkResult = (output: any): SendAlimtalkResult => {
   return {
     requestId: output.requestId != undefined ? output.requestId : undefined,
-    requestTime: output.requestTime != undefined ? output.requestTime : undefined,
+    requestTime: output.requestTime != undefined ? convertToUtc(output.requestTime) : undefined,
     statusCode: output.statusCode != undefined ? output.statusCode : undefined,
     statusName: output.statusName != undefined ? output.statusName : undefined,
     messages: output.messages ? de_AlimtalkMessageRequestStatusList(output.messages) : [],

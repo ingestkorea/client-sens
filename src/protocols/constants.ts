@@ -133,6 +133,11 @@ export const compact = <T>(obj: T): T => {
   return obj;
 };
 
+export const convertToUtc = (input: string) => {
+  const utcRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+  return utcRegex.test(input) ? input : new Date(input.replace(" ", "T") + "+09:00").toISOString();
+};
+
 const isJsonResponse = (contentType?: string): boolean => {
   return /application\/json/gi.exec(contentType || "") ? true : false;
 };

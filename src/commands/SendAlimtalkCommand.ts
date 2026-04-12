@@ -70,6 +70,7 @@ const resolveAlimtalkMessages = (
     return {
       to: message.to.replace(/\-/gi, ""),
       content: message.content,
+      useSmsFailover: message.useSmsFailover != undefined ? message.useSmsFailover : false,
       ...(message.buttons && message.buttons.length && { buttons: message.buttons }),
     };
   });

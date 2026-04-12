@@ -1,7 +1,7 @@
 import { HttpRequest } from "@ingestkorea/util-http-handler";
 import { SensClientResolvedConfig, RequestSerializer, ResponseDeserializer, SendSMSResult } from "../models/index.js";
 import { SendSMSCommandInput, SendSMSCommandOutput } from "../commands/SendSMSCommand.js";
-import { deserializeMetadata, parseBody, parseErrorBody, compact } from "./constants.js";
+import { deserializeMetadata, parseBody, parseErrorBody, compact, convertToUtc } from "./constants.js";
 
 export const se_SendSMSCommand: RequestSerializer<SendSMSCommandInput, SensClientResolvedConfig> = async (
   input,
@@ -43,7 +43,7 @@ export const de_SendSMSCommand: ResponseDeserializer<SendSMSCommandOutput, SensC
 export const de_SendSMSResult = (output: any): SendSMSResult => {
   return {
     requestId: output.requestId ? output.requestId : undefined,
-    requestTime: output.requestTime ? output.requestTime : undefined,
+    requestTime: output.requestTime ? convertToUtc(output.requestTime) : undefined,
     statusCode: output.statusCode ? output.statusCode : undefined,
     statusName: output.statusName ? output.statusName : undefined,
   };

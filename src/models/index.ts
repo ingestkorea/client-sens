@@ -6,6 +6,7 @@ export * from "./GetSMSStatus.js";
 export * from "./ListAlimtalkChannels.js";
 export * from "./ListAlimtalkStatus.js";
 export * from "./ListAlimtalkTemplates.js";
+export * from "./ListSMSStatus.js";
 export * from "./MetadataBearer.js";
 export * from "./SendAlimtalk.js";
 export * from "./SendMMS.js";
