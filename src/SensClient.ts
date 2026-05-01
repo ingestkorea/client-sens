@@ -32,8 +32,13 @@ export class SensClient {
       const { response } = await handler({ request }, this.config);
       const output = await deserializer(response, this.config);
       return output;
-    } catch (e) {
-      throw e;
+    } catch (err) {
+      if (err instanceof SensError) throw err;
+      throw new SensError({
+        code: -1,
+        type: "SDK.UNKNOWN_ERROR",
+        message: err instanceof Error ? err.message : "unknown error",
+      });
     }
   }
 }
@@ -48,20 +53,19 @@ const composeMiddleware = (middlewares: Middleware[], finalHandler: Handler): Ha
 const resolveCredentials = (config: SensClientConfig): SensClientResolvedConfig["credentials"] => {
   const { credentials } = config;
 
-  let error = new SensError({
-    code: 401,
-    type: "Unauthorized",
-    message: "Invalid Credentials",
-    invalidInputs: [{ type: "not-valid.args", message: "SensClient 초기화시 인증 정보를 확인해주세요" }],
+  const error = new SensError({
+    code: -1,
+    type: "SDK.AUTH_ERROR",
+    message: "SensClient 초기화시 인증 정보를 입력해주세요.",
   });
 
   if (!credentials) throw error;
   if (!credentials.accessKey) {
-    error.invalidInputs[0].message = "AccessKey 정보를 확인해주세요";
+    error.message = "AccessKey 정보를 확인해주세요.";
     throw error;
   }
   if (!credentials.secretKey) {
-    error.invalidInputs[0].message = "SecretKey 정보를 확인해주세요";
+    error.message = "SecretKey 정보를 확인해주세요.";
     throw error;
   }
 
@@ -74,24 +78,22 @@ const resolveCredentials = (config: SensClientConfig): SensClientResolvedConfig[
 const resolveServiceId = (config: SensClientConfig): SensClientResolvedConfig["serviceId"] => {
   const { serviceId } = config;
 
-  let error = new SensError({
-    code: 400,
-    type: "Bad Request",
-    message: "Invalid ServiceId",
-    invalidInputs: [{ type: "not-valid.args", message: "SensClient 초기화시 서비스 정보를 확인해주세요" }],
+  const error = new SensError({
+    code: -1,
+    type: "SDK.GENERAL_ERROR",
+    message: "SensClient 초기화시 사용할 서비스 정보를 입력해주세요.",
   });
 
   if (!serviceId) throw error;
 
   const isReady = !!Object.values(serviceId).filter((d) => !!d).length;
   if (!isReady) {
-    error.invalidInputs[0].message = "최소 1개 이상의 서비스 정보가 필요합니다";
+    error.message = "최소 1개 이상의 서비스 정보가 필요합니다";
     throw error;
   }
 
   return {
     kakao: serviceId.kakao ?? "",
-    push: serviceId.push ?? "",
     sms: serviceId.sms ?? "",
   };
 };

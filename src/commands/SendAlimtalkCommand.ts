@@ -45,25 +45,18 @@ const resolveAlimtalkMessages = (
 ): AlimtalkMessage[] => {
   if (!messages.length || messages.length > config.maxRecipients) {
     throw new SensError({
-      code: 400,
-      type: "Bad Request",
-      message: "알림톡 동시 발송 범위 오류",
-      invalidInputs: [
-        {
-          type: "not-valid.args",
-          message: `메세지 동시 발송은 최소 1명, 최대 ${config.maxRecipients}명까지 가능합니다.`,
-        },
-      ],
+      code: -1,
+      type: "SDK.GENERAL_ERROR",
+      message: `알림톡 동시 발송은 최소 1명, 최대 ${config.maxRecipients}명까지 가능합니다.`,
     });
   }
 
   const result: AlimtalkMessage[] = messages.map((message) => {
     if (message.content.length > config.maxContentLength) {
       throw new SensError({
-        code: 400,
-        type: "Bad Request",
-        message: "알림톡 최대 길이 초과",
-        invalidInputs: [{ type: "not-valid.args", message: `메세지 최대 길이는 ${config.maxContentLength}글자입니다` }],
+        code: -1,
+        type: "SDK.GENERAL_ERROR",
+        message: `알림톡 최대 길이는 ${config.maxContentLength}글자입니다`,
       });
     }
 

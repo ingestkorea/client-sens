@@ -52,6 +52,7 @@ npm install @ingestkorea/client-sens
 - SendMMS (MMS)
 - GetSMSStatus (SMS, LMS, MMS)
 - GetSMSResult (SMS, LMS, MMS)
+- ListSMSStatus (SMS, LMS, MMS)
 
 ### Import
 

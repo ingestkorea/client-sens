@@ -13,5 +13,6 @@ export * from "./SendMMS.js";
 export * from "./SendSMS.js";
 export * from "./SensClient.js";
 export * from "./SensCommand.js";
+export * from "./SensError.js";
 export * from "./SensErrorInfo.js";
 export * from "./SensMiddleware.js";

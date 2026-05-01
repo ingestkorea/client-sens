@@ -5,7 +5,6 @@ export type Credentials = {
 
 export type ServiceId = {
   kakao: string;
-  push: string;
   sms: string;
 };
 

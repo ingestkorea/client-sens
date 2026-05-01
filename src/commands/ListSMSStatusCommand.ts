@@ -37,15 +37,12 @@ export class ListSMSStatusCommand extends SensCommand<
     super(input);
     if (input.nextToken && (!input.requestStartTime || !input.requestEndTime)) {
       throw new SensError({
-        code: 400,
-        type: "Bad Request",
+        code: -1,
+        type: "SDK.GENERAL_ERROR",
         message: "페이지네이션 검색 조건 불일치",
-        invalidInputs: [
-          {
-            type: "not-valid.args",
-            message:
-              "nextToken 사용 시 데이터 일관성을 위해 최초 요청 시의 옵션(requestStartTime, requestEndTime, pageSize 등)이 모두 동일하게 유지되어야 합니다.",
-          },
+        errors: [
+          "nextToken 사용 시 데이터 일관성을 위해 최초 요청 시의 옵션이 모두 동일하게 유지되어야 합니다.",
+          "requestStartTime, requestEndTime, pageSize 옵션을 확인해주세요.",
         ],
       });
     }

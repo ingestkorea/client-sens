@@ -47,29 +47,18 @@ export const resolveRequestDuration = (
 
   if (diff < 0) {
     throw new SensError({
-      code: 400,
-      type: "Bad Request",
-      message: `조회 가능 날짜 오류`,
-      invalidInputs: [
-        {
-          type: "not-valid.args",
-          message: "종료일이 시작일보다 빠를 수 없습니다.",
-        },
-      ],
+      code: -1,
+      type: "SDK.GENERAL_ERROR",
+      message: "조회 가능 날짜 오류. 종료일이 시작일보다 빠를 수 없습니다.",
+      errors: [`종료일: ${input.endTime}`, `시작일: ${input.startTime}`],
     });
   }
 
   if (diff > config.durationLimitMs) {
     throw new SensError({
-      code: 400,
-      type: "Bad Request",
-      message: `조회 가능 날짜 범위 오류`,
-      invalidInputs: [
-        {
-          type: "not-valid.args",
-          message: `조회 가능한 날짜 범위는 최대 ${config.durationLimitMs / (24 * 3_600_000)}일 이내여야 합니다.`,
-        },
-      ],
+      code: -1,
+      type: "SDK.GENERAL_ERROR",
+      message: `최대 ${config.durationLimitMs / (24 * 3_600_000)}일 이내에서 조회 가능합니다.`,
     });
   }
 

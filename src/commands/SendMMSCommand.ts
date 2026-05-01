@@ -57,12 +57,9 @@ const resolveSendFile = (file: SendFile, options: { maxKiB: number; supportExt: 
 
   if (!options.supportExt.includes(ext)) {
     throw new SensError({
-      code: 400,
-      type: "Bad Request",
-      message: "지원하지 않는 확장자입니다.",
-      invalidInputs: [
-        { type: "not-valid.args", message: `${options.supportExt.join(", ")} 형식의 첨부파일만 지원합니다.` },
-      ],
+      code: -1,
+      type: "SDK.GENERAL_ERROR",
+      message: `MMS는 ${options.supportExt.join(", ")} 형식의 첨부파일만 보낼 수 있습니다.`,
     });
   }
 
@@ -79,10 +76,9 @@ const resolveSendFile = (file: SendFile, options: { maxKiB: number; supportExt: 
 
   if (!existsSync(file.name)) {
     throw new SensError({
-      code: 400,
-      type: "Bad Request",
-      message: "파일이 존재하지 않습니다.",
-      invalidInputs: [{ type: "not-valid.args", message: `${file.name} 파일이 존재하지 않습니다.` }],
+      code: -1,
+      type: "SDK.GENERAL_ERROR",
+      message: `${file.name} 첨부파일이 존재하지 않습니다.`,
     });
   }
 
@@ -103,15 +99,9 @@ const checkSizeLimit = (buffer: Buffer, maxKiB: number): void => {
 
   if (kibSize > maxKiB) {
     throw new SensError({
-      code: 400,
-      type: "Bad Request",
-      message: `최대 첨부가능 용량이 초과되었습니다.`,
-      invalidInputs: [
-        {
-          type: "not-valid.args",
-          message: `최대 ${maxKiB}KiB까지 전송 가능합니다. 현재 ${kibSize}KiB`,
-        },
-      ],
+      code: -1,
+      type: "SDK.GENERAL_ERROR",
+      message: `첨부파일은 ${maxKiB}KiB까지 전송 가능합니다. 현재 ${kibSize}KiB`,
     });
   }
 

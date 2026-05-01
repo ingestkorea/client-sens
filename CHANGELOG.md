@@ -1,5 +1,28 @@
 # Change Log
 
+## 1.10.0 (2026-05-01)
+
+### Features
+
+- **Common**
+
+  - HTTP 핸들러 업데이트: `NodeHttpHandler` 요청 실패시 중복 호출 방지 기능 추가, socket 처리 방식 변경.
+  - 에러 표준화: `SensError` 클래스 통한 에러 표준화. ([SENS](https://api.ncloud-docs.com/docs/sens-overview#응답상태코드), [Ncloud](https://api.ncloud-docs.com/docs/common-ncpapi#api-공통-설정), SDK 내부 오류)
+
+  ```ts
+  type SesnResponseErrorType =
+    | "Bad Request"
+    | "Unauthorized"
+    | "Forbidden"
+    | "Not Found"
+    | "Too Many Requests"
+    | "Internal Server Error";
+
+  type SensClientErrorType = "SDK.AUTH_ERROR" | "SDK.GENERAL_ERROR" | "SDK.REQUEST_ERROR" | "SDK.UNKNOWN_ERROR";
+
+  type SensErrorType = SesnResponseErrorType | SensClientErrorType;
+  ```
+
 ## 1.9.0 (2026-04-12)
 
 ### Features

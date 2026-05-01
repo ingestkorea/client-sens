@@ -1,5 +1,14 @@
 import { HttpResponse, collectBodyString, destroyStream } from "@ingestkorea/util-http-handler";
-import { ResponseMetadata, SensErrorResponse, SensError } from "../models/index.js";
+import {
+  ResponseMetadata,
+  SensError,
+  SensErrorResponse,
+  NCloudErrorResponse,
+  SENS_ERROR_CODE_SPEC,
+  SENS_ERROR_BODY_SPEC,
+  NCLOUD_ERROR_CODE_SPEC,
+  NCLOUD_ERROR_BODY_SPEC,
+} from "../models/index.js";
 import { INGESTKOREA_RETRY, INGESTKOREA_RETRY_DELAY } from "../middleware/constants.js";
 
 export const deserializeMetadata = (response: HttpResponse): ResponseMetadata => {
@@ -20,88 +29,90 @@ export const parseBody = async (output: HttpResponse): Promise<any> => {
     await destroyStream(streamBody);
 
     throw new SensError({
-      code: statusCode ?? 400,
-      type: "Bad Request",
+      code: -1,
+      type: "SDK.REQUEST_ERROR",
+      message: "response content-type is not application/json",
+    });
+  }
+
+  try {
+    const data = await collectBodyString(streamBody);
+    return data.length ? JSON.parse(data) : {};
+  } catch (e) {
+    throw new SensError({
+      code: -1,
+      type: "SDK.REQUEST_ERROR",
+      message: e instanceof Error ? e.message : "parse response body error",
+    });
+  }
+};
+
+export const parseErrorBody = async (output: HttpResponse): Promise<never> => {
+  const { statusCode, headers, body: streamBody } = output;
+
+  if (!isJsonResponse(headers["content-type"])) {
+    await destroyStream(streamBody);
+    throw new SensError({
+      code: -1,
+      type: "SDK.REQUEST_ERROR",
       message: "response content-type is not application/json",
     });
   }
 
   const data = await collectBodyString(streamBody);
+  const sensErrorBody = isSensErrorResponse(data);
+  const nCloudErrorBody = isNCloudErrorResponse(data);
 
-  if (data.length) {
-    try {
-      return JSON.parse(data);
-    } catch (e) {
-      await destroyStream(streamBody);
+  if (sensErrorBody) {
+    const errorType: SensError["type"] = isSensErrorCode(sensErrorBody.status)
+      ? SENS_ERROR_CODE_SPEC[sensErrorBody.status]
+      : "SDK.UNKNOWN_ERROR";
 
-      throw new SensError({
-        code: statusCode ?? 400,
-        type: "Bad Request",
-        message: "parse response body error",
-      });
-    }
+    throw new SensError({
+      code: isSensErrorCode(sensErrorBody.status) ? sensErrorBody.status : statusCode,
+      type: errorType,
+      message: sensErrorBody.errorMessage || errorType,
+      ...(sensErrorBody.errors &&
+        Array.isArray(sensErrorBody.errors) && {
+          errors: sensErrorBody.errors.filter((d) => !!d),
+        }),
+    });
   }
 
-  return {};
-};
+  if (nCloudErrorBody) {
+    const { errorCode } = nCloudErrorBody.error;
+    const errorType: SensError["type"] = isNCloudErrorCode(errorCode)
+      ? NCLOUD_ERROR_CODE_SPEC[errorCode].type
+      : "SDK.UNKNOWN_ERROR";
 
-export const parseErrorBody = async (output: HttpResponse): Promise<void> => {
-  const { statusCode, headers, body: streamBody } = output;
-
-  const error = new SensError({
-    code: statusCode ?? 400,
-    type: "Bad Request",
-    message: "something wrong",
-  });
-
-  if (!isJsonResponse(headers["content-type"])) {
-    await destroyStream(streamBody);
-    error.message = "response content-type is not application/json";
-    throw error;
-  }
-
-  const data = await collectBodyString(streamBody);
-  await destroyStream(streamBody);
-
-  const sensErrorBody = isSensErrorBody(data);
-  if (!sensErrorBody) {
-    throw error;
+    throw new SensError({
+      code: isNCloudErrorCode(errorCode) ? NCLOUD_ERROR_CODE_SPEC[errorCode].status : statusCode,
+      type: errorType,
+      message: nCloudErrorBody.error.details || "Something wrong",
+    });
   }
 
   throw new SensError({
-    code: sensErrorBody.status,
-    type: SENS_ERROR_CODE_SPEC[sensErrorBody.status] || "Unknown Error",
-    message: sensErrorBody.errorMessage || "Something wrong",
-    ...(sensErrorBody.errors &&
-      Array.isArray(sensErrorBody.errors) && {
-        invalidInputs: sensErrorBody.errors.map((msg) => {
-          return { type: "not-valid.args", message: msg };
-        }),
-      }),
+    code: -1,
+    type: "SDK.UNKNOWN_ERROR",
+    message: "Invalid Naver Cloud Platform response format",
+    errors: [`${statusCode} - ${data.slice(0, 120)}...`],
   });
 };
 
-const SENS_ERROR_CODE_SPEC: Record<number, string> = {
-  400: "Bad Request",
-  401: "Unauthorized",
-  403: "Forbidden",
-  404: "Not Found",
-  429: "Too Many Requests",
-  500: "Internal Server Error",
+const isSensErrorCode = (code: number): code is keyof typeof SENS_ERROR_CODE_SPEC => {
+  return code in SENS_ERROR_CODE_SPEC;
 };
 
-const SENS_ERROR_BODY_SPEC: [[keyof SensErrorResponse][number], string, boolean][] = [
-  ["status", "number", true],
-  ["errorMessage", "string", false],
-  ["errors", "object", false],
-];
+const isNCloudErrorCode = (code: string): code is keyof typeof NCLOUD_ERROR_CODE_SPEC => {
+  return code in NCLOUD_ERROR_CODE_SPEC;
+};
 
-const isSensErrorBody = (input: unknown): SensErrorResponse | null => {
+const isSensErrorResponse = (input: unknown): SensErrorResponse | null => {
   if (typeof input !== "string") return null;
 
   try {
     const data = JSON.parse(input);
-
     if (!data || typeof data !== "object") return null;
 
     const isValid = SENS_ERROR_BODY_SPEC.every(([key, type, required]) => {
@@ -112,6 +123,26 @@ const isSensErrorBody = (input: unknown): SensErrorResponse | null => {
     });
 
     return isValid ? (data as SensErrorResponse) : null;
+  } catch {
+    return null;
+  }
+};
+
+const isNCloudErrorResponse = (input: unknown): NCloudErrorResponse | null => {
+  if (typeof input !== "string") return null;
+
+  try {
+    const data = JSON.parse(input);
+    if (!(data && typeof data == "object" && typeof data.error == "object")) return null;
+
+    const isValid = NCLOUD_ERROR_BODY_SPEC.every(([key, type, required]) => {
+      const value = data.error[key];
+      if (required && (value === undefined || value === null)) return false;
+      if (value !== undefined && typeof value !== type) return false;
+      return true;
+    });
+
+    return isValid ? (data as NCloudErrorResponse) : null;
   } catch {
     return null;
   }
@@ -139,5 +170,5 @@ export const convertToUtc = (input: string) => {
 };
 
 const isJsonResponse = (contentType?: string): boolean => {
-  return /application\/json/gi.exec(contentType || "") ? true : false;
+  return contentType?.toLowerCase().includes("application/json") ?? false;
 };

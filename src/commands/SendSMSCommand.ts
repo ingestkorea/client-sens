@@ -74,19 +74,17 @@ const getMessageType = (input: { content: string }): MessageType => {
 
   if (!contentLength) {
     throw new SensError({
-      code: 400,
-      type: "Bad Request",
+      code: -1,
+      type: "SDK.GENERAL_ERROR",
       message: "메세지 내용이 없습니다.",
-      invalidInputs: [{ type: "not-valid.args", message: "메세지 내용을 확인해주세요." }],
     });
   }
 
   if (contentLength > LMS_MAX_CONTENT_LENGTH) {
     throw new SensError({
-      code: 400,
-      type: "Bad Request",
-      message: "메세지 최대 크기 초과",
-      invalidInputs: [{ type: "not-valid.args", message: `메세지 최대 길이는 ${LMS_MAX_CONTENT_LENGTH}글자입니다` }],
+      code: -1,
+      type: "SDK.GENERAL_ERROR",
+      message: `메세지 최대 길이는 ${LMS_MAX_CONTENT_LENGTH}글자입니다`,
     });
   }
 
