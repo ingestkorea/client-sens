@@ -1,10 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist-es",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "target": "ES2018",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "outDir": "./dist-es"
   }
 }

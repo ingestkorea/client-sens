@@ -2,39 +2,49 @@
 
 [![npm (scoped)](https://img.shields.io/npm/v/@ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
 [![npm downloads](https://img.shields.io/npm/dm/@ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
-![build status](https://codebuild.ap-northeast-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiOTYrKzNDRklOaWJxS2ZoTkZvY05TU2VGVFdxWFlSWE9DZXJTYVBlbCtwc0J5YTcvdUFKRjlSc1RDTHNDV1J4YnhxMmRLaFdIakpSVWN3QzBHQXp0KzdRPSIsIml2UGFyYW1ldGVyU3BlYyI6IjQ1dUtTMlE1UWhmWmFTRGsiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)
 [![license](https://img.shields.io/github/license/ingestkorea/client-sens?style=flat-square)](https://www.npmjs.com/package/@ingestkorea/client-sens)
 
 ## Description
 
 INGESTKOREA SDK - Naver Cloud Platform SENS Client for Node.js.
 
-INGESTKOREA SDK - SENS Client for Node.js is a lightweight library that contains only the essential features frequently used in SENS.
+SENS(Simple & Easy Notification Service) SDK는 [네이버 클라우드 SENS](https://www.ncloud.com/product/applicationService/sens)에서 필수적으로 사용되는 메서드 위주로 구현된 가벼운 라이브러리입니다.
 
-This SDK performs tasks such as the following automatically.
+SDK는 아래 작업들을 내부적으로 수행합니다.
 
-- Authentication using an API Signature
-- Retrying requests
-- Handling error responses
+- 공통 헤더를 이용한 인증(Signature, Timestamp, AccessKey)
+- API 요청 실패시 지능형 재시도
+- SENS API, Ncloud API 표준 에러 핸들링
 
-## Installing
+SDK는 [SENS API Docs](https://api.ncloud-docs.com/docs/sens-overview), [Ncloud API Docs](https://api.ncloud-docs.com/docs/common-ncpapi#응답)에서 제공하는 형식을 준수합니다.
+
+**주의사항**: SENS 서비스 이용을 위해서는 아래 정보들이 필요합니다
+
+- [Naver Cloud Platform API 인증키](https://www.ncloud.com/mypage/manage/authkey): **AccessKey**, **SecretKey**
+- [SENS 이용 서비스 정보](https://console.ncloud.com/sens/project): **ServiceId**
+
+## Getting Started
+
+### Installing
 
 ```sh
 npm install @ingestkorea/client-sens
 ```
 
-## Getting Started
-
 ### Pre-requisites
 
-- Use TypeScript v5.x
-- Includes the TypeScript definitions for node.
-  ```sh
-  npm install -D typescript # save dev mode
-  npm install -D @types/node # save dev mode
-  ```
+SDK는 아래 사항들을 요구합니다.
 
-### Support Commands
+- TypeScript v5 이상
+- Node v22 이상
+
+```sh
+# save dev mode
+npm install -D typescript
+npm install -D @types/node
+```
+
+## Support Methods
 
 #### Kakao Alimtalk
 
@@ -54,11 +64,11 @@ npm install @ingestkorea/client-sens
 - GetSMSResult (SMS, LMS, MMS)
 - ListSMSStatus (SMS, LMS, MMS)
 
-### Import
+## Import
 
-The INGESTKOREA SDK - SENS Client is modulized by `client` and `commands`.
+Simple & Easy Notification Service SDK는 `client`, `commands` 두 개의 모듈로 구성되어 있습니다.
 
-To send a request, you only need to import the SensClient and the commands you need, for example SendMessageCommand:
+SDK 사용을 위해서는 `SensClient`, 필요한 `Command` 단 두 개만 import 하면 됩니다. (예시를 위해 `SendMessageCommand`를 사용하겠습니다.)
 
 ```ts
 import { SensClient, SendAlimtalkCommand } from "@ingestkorea/client-sens";
@@ -66,29 +76,35 @@ import { SensClient, SendAlimtalkCommand } from "@ingestkorea/client-sens";
 
 ### Usage
 
-To send a request, you:
+요청을 보내기 위해서는
 
-- Initiate client with configuration.
-- Initiate command with input parameters.
-- Call `send` operation on client with command object as input.
+- Client 초기화 / 설정 정보 필요(ex. credentials)
+- Command 초기화 / 파라미터 값들 필요
+- `send` 메서드 호출 / Command 객체 필요
+
+`SensClient`가 내부적으로 사용하는 **httpHandler**는 기본적으로 다음 옵션이 적용됩니다.
+
+- **connectionTimeout**: 2000ms
+- **socketTimeout**: 3000ms
+- **keepAlive**: false
+- **family**: ipv4
 
 ```ts
+// 초기화된 client는 다른 요청에도 재사용 가능합니다.
 const client = new SensClient({
-  /**
-   * AccessKey, SecretKey: https://www.ncloud.com/mypage/manage/authkey
-   * serviceId: https://console.ncloud.com/sens/project
-   */
   credentials: {
     accessKey: "YOUR_ACCESS_KEY",
     secretKey: "YOUR_SECRET_KEY",
   },
-  /**
-   * at least one serviceId required
-   * if you call send operation without serviceId, sdk throw error
-   */
+  // 최소 1개 이상의 serviceId 정보가 필요합니다.
   serviceId: {
     kakao: "ncp:kkobizmsg:kr:xxxxxx:your-service-name",
     sms: "ncp:sms:kr:xxxxxx:your-service-name",
+  },
+  // 선택 (필요시 변경 가능)
+  httpHandler: {
+    connectionTimeout: 2000,
+    ...
   },
 });
 ```
@@ -97,18 +113,41 @@ const client = new SensClient({
 
 ```ts
 const command = new SendAlimtalkCommand({
-  /** Required: Kakao PlusFriend ID (e.g., @kakao) */
-  plusFriendId: "PLUS_FRIEND_ID",
-
-  /** Required: Kakao Alimtalk TemplateCode ID (e.g., welcomeTemplate) */
-  templateCode: "TEMPLATE_CODE",
-
-  /** Required: List of messages to send (Max 100) */
+  plusFriendId: "PLUS_FRIEND_ID", // @plusfriendId
+  templateCode: "TEMPLATE_CODE", // TemplateCode ID (e.g., welcomeTemplate)
   messages: [
-    /** Recipient phone number (digits only), Message content */
+    // 최대 100개까지 요청 가능
     { to: "01012345678", content: "YOUR_CONTENT" },
   ],
 });
+```
+
+```json
+{
+  "$metadata": {
+    "httpStatusCode": 202,
+    "attempts": 1,
+    "totalRetryDelay": 0,
+    "traceId": "xxxxxx"
+  },
+  "requestId": "xxxx-xxxx-xxxx-xxxx-xxxx",
+  "requestTime": "2026-01-23T12:34:56.789Z",
+  "statusCode": "202",
+  "statusName": "processing",
+  "messages": [
+    {
+      "messageId": "xxxx-xxx-xxxx-xxxx-xxxx",
+      "to": "010xxxxzzzz",
+      "countryCode": "82",
+      "content": "xxxx",
+      ...
+      "requestStatusCode": "A000",
+      "requestStatusName": "success",
+      "requestStatusDesc": "성공",
+      "useSmsFailover": false
+    }
+  ]
+}
 ```
 
 #### ListAlimtalkStatus
@@ -135,7 +174,9 @@ const command = new ListAlimtalkStatusCommand({
 #### GetAlimtalkStatus
 
 ```ts
-const command = new GetAlimtalkStatusCommand({ requestId: "ALIMTALK_REQUEST_ID" });
+const command = new GetAlimtalkStatusCommand({
+  requestId: "ALIMTALK_REQUEST_ID",
+});
 ```
 
 #### SendSMS (SMS, LMS)
@@ -192,33 +233,33 @@ const command = new SendMMSCommand({
 });
 ```
 
-#### Async/await
+### Async/await
 
 ```ts
+import {
+  SensClient, SendAlimtalkCommand, SensError
+} from "@ingestkorea/client-sens";
+
 (async () => {
   try {
-    const data = await client.send(command);
-    console.dir(data, { depth: 4 });
-  } catch (err) {
-    console.dir(err, { depth: 4 });
+    // a client can be shared by different commands.
+    const client = new SensClient({...});
+    const command = new SendAlimtalkCommand({...});
+
+    const output = await client.send(command);
+    console.log(output);
+  } catch (error) {
+    if (error instanceof SensError) {
+      ...
+    }
+    console.error(error)
   }
 })();
 ```
 
-#### Promises
-
-```ts
-client
-  .send(command)
-  .then((data) => console.dir(data, { depth: 4 }))
-  .catch((err) => console.dir(err, { depth: 4 }));
-```
-
 ## Getting Help
 
-We use the GitHub issues for tracking bugs and feature requests.
-
-If it turns out that you may have found a bug, please open an issue.
+기능 추가 요청, 버그 신고는 깃허브 이슈를 사용해주세요.
 
 ## License
 

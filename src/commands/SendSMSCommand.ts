@@ -11,7 +11,7 @@ import {
   SensError,
 } from "../models/index.js";
 import { se_SendSMSCommand, de_SendSMSCommand } from "../protocols/SendSMS.js";
-import { trimText, prettyPhoneNum, getContentLength } from "./constants";
+import { trimText, prettyPhoneNum, getContentLength } from "./constants.js";
 
 export interface SendSMSCommandInput extends SendSMSRequest {}
 export interface SendSMSCommandOutput extends MetadataBearer, SendSMSResult {}

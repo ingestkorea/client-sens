@@ -1,2 +1,4 @@
 # Tests
-dist-*/test/
+dist-cjs/test/
+dist-es/test/
+dist-types/test/

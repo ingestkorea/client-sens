@@ -1,8 +1,9 @@
-import { SesnResponseErrorType } from "./SensErrorInfo.js";
+import { HttpHandlerErrorCode } from "@ingestkorea/util-http-handler";
+import { SesnResponseErrorType } from "./SensApiError.js";
 
 type SensClientErrorType = "SDK.AUTH_ERROR" | "SDK.GENERAL_ERROR" | "SDK.REQUEST_ERROR" | "SDK.UNKNOWN_ERROR";
 
-export type SensErrorType = SesnResponseErrorType | SensClientErrorType;
+export type SensErrorType = SesnResponseErrorType | SensClientErrorType | HttpHandlerErrorCode;
 
 export interface SensErrorInput {
   code: number;

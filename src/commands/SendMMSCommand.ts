@@ -15,7 +15,7 @@ import {
   SensError,
 } from "../models/index.js";
 import { se_SendMMSCommand, de_SendMMSCommand } from "../protocols/SendMMS.js";
-import { trimText, prettyPhoneNum } from "./constants";
+import { trimText, prettyPhoneNum } from "./constants.js";
 import { resolveInputMessages } from "./SendSMSCommand.js";
 
 export interface SendMMSCommandInput extends SendMMSRequest {}

@@ -1,6 +1,22 @@
 # Change Log
 
-## 1.10.0 (2026-05-01)
+## v1.11.0 (2026-05-26)
+
+### Changed
+
+- 프로젝트에서 `"type": "module"` 사용시 순수 ESM 구조(`import/export`) 지원.
+- ESM 및 CJS 빌드의 최하위 지원 타겟을 `ES2022`로 상향 및 통일: 네이티브 비동기 스택 트레이스 출력을 지원하여 에러 디버깅 편의성 개선
+- **Naver Cloud Platform API 메타데이터 지원**: `x-ncp-trace-id`
+- **NaverCommerceClient**:
+  - `HttpHandlerOptions`을 통한 유연한 사용자 설정 지원.
+- **NodeHttpHandler**:
+  - **connectionTimeout**, **socketTimeout** 기본값 각각 2000ms, 3000ms로 변경.
+  - **keepAlive** 기본값을 `false`로 변경. (socket hang up 방지)
+  - `ipv4` 주소 강제. (네이버 클라우드 플랫폼 API 서버는 ipv4만 지원)
+- **middlewareRetry**:
+  - HTTP Request Retry 정책 추가. (`SDK.TIMEOUT`, `SDK.NETWORK_ERROR`)
+
+## v1.10.0 (2026-05-01)
 
 ### Features
 
@@ -23,7 +39,7 @@
   type SensErrorType = SesnResponseErrorType | SensClientErrorType;
   ```
 
-## 1.9.0 (2026-04-12)
+## v1.9.0 (2026-04-12)
 
 ### Features
 

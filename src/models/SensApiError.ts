@@ -33,15 +33,3 @@ export interface NCloudErrorResponse {
     details?: string;
   };
 }
-
-export const SENS_ERROR_BODY_SPEC: [[keyof SensErrorResponse][number], string, boolean][] = [
-  ["status", "number", true],
-  ["errorMessage", "string", false],
-  ["errors", "object", false],
-];
-
-export const NCLOUD_ERROR_BODY_SPEC: [[keyof NCloudErrorResponse["error"]][number], string, boolean][] = [
-  ["errorCode", "string", true],
-  ["message", "string", false],
-  ["details", "string", false],
-];

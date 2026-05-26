@@ -1,5 +1,13 @@
+import { HttpHandlerError } from "@ingestkorea/util-http-handler";
 import { Middleware, SensError } from "../models/index.js";
 import { INGESTKOREA_REQUEST_LOG, INGESTKOREA_RETRY, INGESTKOREA_RETRY_DELAY } from "./constants.js";
+
+const RETRYABLE_ERROR_TYPE: SensError["type"][] = [
+  "SDK.TIMEOUT",
+  "SDK.NETWORK_ERROR",
+  "Too Many Requests",
+  "Internal Server Error",
+];
 
 export const middlewareRetry: Middleware = (next) => async (input, context) => {
   const MAX_RETRIES = 3;
@@ -10,9 +18,7 @@ export const middlewareRetry: Middleware = (next) => async (input, context) => {
   let attempts = 0;
   let totalRetryDelay = 0;
 
-  input.request.headers = {
-    ...input.request.headers,
-  };
+  input.request.headers = input.request.headers ?? {};
 
   while (attempts < MAX_RETRIES) {
     attempts++;
@@ -28,13 +34,33 @@ export const middlewareRetry: Middleware = (next) => async (input, context) => {
 
       return { response };
     } catch (error) {
-      if (attempts >= MAX_RETRIES) {
-        throw new SensError({
+      let currentError: SensError;
+      if (error instanceof SensError) {
+        currentError = error;
+      } else if (error instanceof HttpHandlerError) {
+        currentError = new SensError({
           code: -1,
-          type: "SDK.REQUEST_ERROR",
-          message: error instanceof Error ? error.message : requestLog,
+          type: error.code,
+          message: error.message,
+        });
+      } else {
+        currentError = new SensError({
+          code: -1,
+          type: "SDK.UNKNOWN_ERROR",
+          message: error instanceof Error ? error.message : String(error),
         });
       }
+
+      const isRetryable = RETRYABLE_ERROR_TYPE.some((type) => currentError.type.startsWith(type));
+      if (!isRetryable) {
+        throw currentError;
+      }
+
+      if (attempts >= MAX_RETRIES) {
+        currentError.errors.push(requestLog);
+        throw currentError;
+      }
+
       const exp = BASE_DELAY_MS * 2 ** (attempts - 1);
       const capped = Math.min(MAX_DELAY_MS, exp);
       const baseWait = Math.max(MIN_DELAY_MS, Math.floor(capped / 2));

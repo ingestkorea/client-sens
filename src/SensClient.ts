@@ -11,33 +11,40 @@ import { middlewareIngestkoreaMetadata, middlewareNcpSign, middlewareRetry } fro
 
 export class SensClient {
   config: SensClientResolvedConfig;
-  private httpHandler = new NodeHttpHandler({ connectionTimeout: 3000, socketTimeout: 3000 });
-  private requestHandler: Handler = async (input, context) => this.httpHandler.handle(input.request);
+  private httpHandler;
 
   constructor(config: SensClientConfig) {
     this.config = {
       credentials: resolveCredentials(config),
       serviceId: resolveServiceId(config),
+      httpHandler: {
+        connectionTimeout: config.httpHandler?.connectionTimeout ?? 2000,
+        socketTimeout: config.httpHandler?.socketTimeout ?? 3000,
+        keepAlive: config.httpHandler?.keepAlive ?? false,
+        family: 4,
+      },
     };
+    this.httpHandler = new NodeHttpHandler(this.config.httpHandler);
   }
 
   async send<T, P>(command: SensCommand<T, P, SensClientResolvedConfig>): Promise<P> {
     const { input, serializer, deserializer } = command;
 
     const middlewares: Middleware[] = [middlewareIngestkoreaMetadata, middlewareNcpSign, middlewareRetry];
-    const handler = composeMiddleware(middlewares, this.requestHandler);
+    const finalHandler: Handler = async (input, context) => this.httpHandler.handle(input.request);
+    const handler = composeMiddleware(middlewares, finalHandler);
 
     try {
       const request = await serializer(input, this.config);
       const { response } = await handler({ request }, this.config);
       const output = await deserializer(response, this.config);
       return output;
-    } catch (err) {
-      if (err instanceof SensError) throw err;
+    } catch (error) {
+      if (error instanceof SensError) throw error;
       throw new SensError({
         code: -1,
         type: "SDK.UNKNOWN_ERROR",
-        message: err instanceof Error ? err.message : "unknown error",
+        message: error instanceof Error ? error.message : "unknown error",
       });
     }
   }

@@ -24,6 +24,7 @@ src/test/
 
 # Artifacts
 *.zip
+*.tgz
 
 # Lockfiles
 package-lock.json
