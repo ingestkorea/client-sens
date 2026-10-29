@@ -18,10 +18,9 @@ export class SensClient {
       credentials: resolveCredentials(config),
       serviceId: resolveServiceId(config),
       httpHandler: {
-        connectionTimeout: config.httpHandler?.connectionTimeout ?? 2000,
-        socketTimeout: config.httpHandler?.socketTimeout ?? 3000,
-        keepAlive: config.httpHandler?.keepAlive ?? false,
-        family: 4,
+        connectionTimeout: config.httpHandler?.connectionTimeout ?? 3000,
+        socketTimeout: config.httpHandler?.socketTimeout ?? 5000,
+        keepAlive: config.httpHandler?.keepAlive ?? true,
       },
     };
     this.httpHandler = new NodeHttpHandler(this.config.httpHandler);

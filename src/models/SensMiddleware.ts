@@ -5,5 +5,5 @@ export type Middleware = (next: Handler) => Handler;
 
 export type Handler = (
   input: { request: HttpRequest },
-  context: SensClientResolvedConfig
+  context: SensClientResolvedConfig,
 ) => Promise<{ response: HttpResponse }>;

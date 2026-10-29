@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "rootDir": "./src",
-    "module": "commonjs",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "ES2022",
-    "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "strict": true
+    "strict": true,
+    "types": ["node"]
   },
   "exclude": ["node_modules"],
   "include": ["src"]

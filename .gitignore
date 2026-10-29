@@ -1,6 +1,25 @@
 # Dependencies
 node_modules/
 
+# Lockfiles
+package-lock.json
+
+# Tests
+src/test/
+
+# Local/dev-only
+dev/
+.env
+.env.*
+*.local
+
+# Build outputs
+dist-*/
+build/
+
+# SQLite
+data/
+
 # Logs
 *.log
 npm-debug.log*
@@ -9,22 +28,7 @@ npm-debug.log*
 .DS_Store
 .vscode/
 
-# Build outputs
-dist-*/
-build/
-
-# Local/dev-only
-dev/
-.env
-.env.*
-*.local
-
-# Tests
-src/test/
-
 # Artifacts
 *.zip
 *.tgz
-
-# Lockfiles
-package-lock.json
+*.tar

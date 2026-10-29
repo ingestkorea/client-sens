@@ -5,7 +5,6 @@ export const middlewareIngestkoreaMetadata: Middleware = (next) => async (input,
   input.request.headers = {
     ...input.request.headers,
     [INGESTKOREA_USER_AGENT]: "@ingestkorea/client-sens/1.11.x",
-    connection: context.httpHandler.keepAlive ? "keep-alive" : "close", // temp
   };
   return next(input, context);
 };
